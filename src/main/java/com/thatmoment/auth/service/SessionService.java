@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -39,9 +41,10 @@ public class SessionService {
     public Session createSession(UUID userId, String deviceName, String platform, String ipAddress, String userAgent) {
         Session session = Session.builder()
                 .userId(userId)
+                .sessionToken(generateSessionToken())
                 .deviceName(deviceName)
                 .platform(platform)
-                .ipAddress(ipAddress)
+                .ipAddress(parseIpAddress(ipAddress))
                 .userAgent(userAgent)
                 .isActive(true)
                 .lastActivityAt(Instant.now())
@@ -144,5 +147,21 @@ public class SessionService {
     @Transactional(readOnly = true)
     public List<Session> getActiveSessions(UUID userId) {
         return sessionRepository.findByUserIdAndIsActiveTrueOrderByLastActivityAtDesc(userId);
+    }
+
+    private String generateSessionToken() {
+        return java.util.UUID.randomUUID().toString();
+    }
+
+    private InetAddress parseIpAddress(String ipAddress) {
+        if (ipAddress == null || ipAddress.isBlank()) {
+            return null;
+        }
+        try {
+            return InetAddress.getByName(ipAddress);
+        } catch (UnknownHostException e) {
+            log.debug("Invalid ip address: {}", ipAddress);
+            return null;
+        }
     }
 }

@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.net.InetAddress;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -144,7 +145,7 @@ public class AuthController {
                         .id(s.getId())
                         .deviceName(s.getDeviceName())
                         .platform(s.getPlatform())
-                        .ipAddress(s.getIpAddress())
+                        .ipAddress(formatIp(s.getIpAddress()))
                         .lastActivityAt(s.getLastActivityAt())
                         .createdAt(s.getCreatedAt())
                         .isCurrent(s.getId().equals(principal.getSessionId()))
@@ -160,5 +161,9 @@ public class AuthController {
             return xForwardedFor.split(",")[0].trim();
         }
         return request.getRemoteAddr();
+    }
+
+    private String formatIp(InetAddress ipAddress) {
+        return ipAddress != null ? ipAddress.getHostAddress() : null;
     }
 }
