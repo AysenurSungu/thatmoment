@@ -4,8 +4,11 @@ import com.thatmoment.common.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
+import java.net.InetAddress;
 import java.util.UUID;
 
 @Entity
@@ -15,17 +18,24 @@ public class Session extends BaseEntity {
     @Column(name = "user_id", nullable = false)
     private UUID userId;
 
+    @Column(name = "session_token", nullable = false, length = 500)
+    private String sessionToken;
+
     @Column(name = "device_name", length = 100)
     private String deviceName;
 
     @Column(name = "platform", length = 50)
     private String platform;
 
-    @Column(name = "ip_address", length = 45)
-    private String ipAddress;
+    @JdbcTypeCode(SqlTypes.INET)
+    @Column(name = "ip_address")
+    private InetAddress ipAddress;
 
     @Column(name = "user_agent", length = 500)
     private String userAgent;
+
+    @Column(name = "expires_at", nullable = false)
+    private Instant expiresAt;
 
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
@@ -44,10 +54,12 @@ public class Session extends BaseEntity {
 
     private Session(Builder builder) {
         this.userId = builder.userId;
+        this.sessionToken = builder.sessionToken;
         this.deviceName = builder.deviceName;
         this.platform = builder.platform;
         this.ipAddress = builder.ipAddress;
         this.userAgent = builder.userAgent;
+        this.expiresAt = builder.expiresAt;
         this.isActive = builder.isActive != null ? builder.isActive : true;
         this.lastActivityAt = builder.lastActivityAt;
         this.revokedAt = builder.revokedAt;
@@ -62,6 +74,10 @@ public class Session extends BaseEntity {
         return userId;
     }
 
+    public String getSessionToken() {
+        return sessionToken;
+    }
+
     public String getDeviceName() {
         return deviceName;
     }
@@ -70,12 +86,16 @@ public class Session extends BaseEntity {
         return platform;
     }
 
-    public String getIpAddress() {
+    public InetAddress getIpAddress() {
         return ipAddress;
     }
 
     public String getUserAgent() {
         return userAgent;
+    }
+
+    public Instant getExpiresAt() {
+        return expiresAt;
     }
 
     public Boolean getIsActive() {
@@ -110,10 +130,12 @@ public class Session extends BaseEntity {
 
     public static final class Builder {
         private UUID userId;
+        private String sessionToken;
         private String deviceName;
         private String platform;
-        private String ipAddress;
+        private InetAddress ipAddress;
         private String userAgent;
+        private Instant expiresAt;
         private Boolean isActive;
         private Instant lastActivityAt;
         private Instant revokedAt;
@@ -127,6 +149,11 @@ public class Session extends BaseEntity {
             return this;
         }
 
+        public Builder sessionToken(String sessionToken) {
+            this.sessionToken = sessionToken;
+            return this;
+        }
+
         public Builder deviceName(String deviceName) {
             this.deviceName = deviceName;
             return this;
@@ -137,13 +164,18 @@ public class Session extends BaseEntity {
             return this;
         }
 
-        public Builder ipAddress(String ipAddress) {
+        public Builder ipAddress(InetAddress ipAddress) {
             this.ipAddress = ipAddress;
             return this;
         }
 
         public Builder userAgent(String userAgent) {
             this.userAgent = userAgent;
+            return this;
+        }
+
+        public Builder expiresAt(Instant expiresAt) {
+            this.expiresAt = expiresAt;
             return this;
         }
 
