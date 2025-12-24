@@ -1,0 +1,49 @@
+services:
+  db:
+    image: postgres:16
+    container_name: thatmoment_db
+    environment:
+      POSTGRES_DB: thatmoment_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5433"
+    volumes:
+      - thatmoment_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d thatmoment_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7
+    container_name: thatmoment_redis
+    ports:
+      - "6379:6379"
+
+  app:
+    image: maven:3.9.6-eclipse-temurin-21
+    container_name: thatmoment_app
+    working_dir: /workspace
+    command: ./mvnw spring-boot:run
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/thatmoment_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./:/workspace
+      - ~/.m2:/root/.m2
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+volumes:
+  thatmoment_pgdata:

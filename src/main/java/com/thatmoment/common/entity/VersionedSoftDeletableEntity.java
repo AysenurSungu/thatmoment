@@ -1,0 +1,17 @@
+package com.thatmoment.common.entity;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.Version;
+
+@MappedSuperclass
+public abstract class VersionedSoftDeletableEntity extends SoftDeletableEntity {
+
+    @Version
+    @Column(name = "version", nullable = false)
+    private long version;
+
+    public long getVersion() {
+        return version;
+    }
+}

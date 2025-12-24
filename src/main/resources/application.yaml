@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: thatmoment
+  mail:
+    host: ${MAIL_HOST:mail.kurumsaleposta.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:noreply@example.com}
+    password: ${MAIL_PASSWORD:}
+    protocol: smtp
+    default-encoding: UTF-8
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: false
+            required: false
+          ssl:
+            enable: false
+          connectiontimeout: 10000
+          timeout: 10000
+          writetimeout: 10000
+
+app:
+  mail:
+    from: ${MAIL_FROM:noreply@example.com}
+    from-name: ${MAIL_FROM_NAME:ThatMoment}
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+jwt:
+  secret: ${JWT_SECRET:thatmoment-256-bit-secret-key-for-jwt-signing-min-32-chars}
+  access-token-expiration-minutes: ${JWT_ACCESS_EXPIRATION:15}
+  refresh-token-expiration-days: ${JWT_REFRESH_EXPIRATION:7}
