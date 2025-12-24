@@ -10,6 +10,32 @@ spring:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/thatmoment_db}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
     password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+
+  mail:
+    host: ${MAIL_HOST:mail.kurumsaleposta.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:test@dippen.com.tr}
+    password: ${MAIL_PASSWORD:nuh7CotqUw9nat_hy}
+    protocol: smtp
+    default-encoding: UTF-8
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: false
+            required: false
+          ssl:
+            enable: false
+          connectiontimeout: 10000
+          timeout: 10000
+          writetimeout: 10000
+
+  app:
+    mail:
+      from: ${MAIL_FROM:test@dippen.com.tr}
+      from-name: ${MAIL_FROM_NAME:That Moment}
+
   data:
     redis:
       host: ${SPRING_REDIS_HOST:localhost}

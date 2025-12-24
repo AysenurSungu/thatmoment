@@ -34,6 +34,12 @@ services:
       SPRING_DATASOURCE_PASSWORD: postgres
       SPRING_REDIS_HOST: redis
       SPRING_REDIS_PORT: 6379
+      MAIL_HOST: mail.kurumsaleposta.com
+      MAIL_PORT: 587
+      MAIL_USERNAME: test@dippen.com.tr
+      MAIL_PASSWORD: nuh7CotqUw9nat_hy
+      MAIL_FROM: test@dippen.com.tr
+      MAIL_FROM_NAME: That Moment
     ports:
       - "8080:8080"
     volumes:
