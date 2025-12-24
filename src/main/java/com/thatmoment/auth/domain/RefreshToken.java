@@ -15,6 +15,9 @@ public class RefreshToken extends BaseEntity {
     @Column(name = "session_id", nullable = false)
     private UUID sessionId;
 
+    @Column(name = "user_id", nullable = false)
+    private UUID userId;
+
     @Column(name = "token_hash", nullable = false, length = 64)
     private String tokenHash;
 
@@ -32,6 +35,7 @@ public class RefreshToken extends BaseEntity {
 
     private RefreshToken(Builder builder) {
         this.sessionId = builder.sessionId;
+        this.userId = builder.userId;
         this.tokenHash = builder.tokenHash;
         this.expiresAt = builder.expiresAt;
         this.isActive = builder.isActive != null ? builder.isActive : true;
@@ -44,6 +48,10 @@ public class RefreshToken extends BaseEntity {
 
     public UUID getSessionId() {
         return sessionId;
+    }
+
+    public UUID getUserId() {
+        return userId;
     }
 
     public String getTokenHash() {
@@ -81,6 +89,7 @@ public class RefreshToken extends BaseEntity {
 
     public static final class Builder {
         private UUID sessionId;
+        private UUID userId;
         private String tokenHash;
         private Instant expiresAt;
         private Boolean isActive;
@@ -91,6 +100,11 @@ public class RefreshToken extends BaseEntity {
 
         public Builder sessionId(UUID sessionId) {
             this.sessionId = sessionId;
+            return this;
+        }
+
+        public Builder userId(UUID userId) {
+            this.userId = userId;
             return this;
         }
 

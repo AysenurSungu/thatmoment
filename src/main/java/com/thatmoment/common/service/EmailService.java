@@ -1,11 +1,11 @@
 package com.thatmoment.common.service;
 
+import com.thatmoment.common.config.AppMailProperties;
 import com.thatmoment.common.constants.MailTemplates;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -24,12 +24,7 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
     private final ResourceLoader resourceLoader;
-
-    @Value("${app.mail.from}")
-    private String fromEmail;
-
-    @Value("${app.mail.from-name}")
-    private String fromName;
+    private final AppMailProperties mailProperties;
 
     @Async
     public void sendVerificationCode(String to, String code, String purpose) {
@@ -59,7 +54,7 @@ public class EmailService {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            helper.setFrom(fromEmail, fromName);
+            helper.setFrom(mailProperties.getFrom(), mailProperties.getFromName());
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(htmlContent, true);

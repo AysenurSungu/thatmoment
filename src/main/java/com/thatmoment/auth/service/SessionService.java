@@ -46,6 +46,7 @@ public class SessionService {
                 .platform(platform)
                 .ipAddress(parseIpAddress(ipAddress))
                 .userAgent(userAgent)
+                .expiresAt(Instant.now().plusSeconds(jwtService.getRefreshTokenExpirationSeconds()))
                 .isActive(true)
                 .lastActivityAt(Instant.now())
                 .build();
@@ -62,6 +63,7 @@ public class SessionService {
 
         RefreshToken tokenEntity = RefreshToken.builder()
                 .sessionId(sessionId)
+                .userId(userId)
                 .tokenHash(tokenHash)
                 .expiresAt(Instant.now().plusSeconds(jwtService.getRefreshTokenExpirationSeconds()))
                 .isActive(true)
