@@ -54,7 +54,17 @@ public class EmailService {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            helper.setFrom(mailProperties.getFrom(), mailProperties.getFromName());
+            String fromEmail = mailProperties.getFrom();
+            String fromName = mailProperties.getFromName();
+            if (fromEmail == null || fromEmail.isBlank()) {
+                log.error("app.mail.from is not configured");
+                return;
+            }
+            if (fromName == null || fromName.isBlank()) {
+                helper.setFrom(fromEmail);
+            } else {
+                helper.setFrom(fromEmail, fromName);
+            }
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(htmlContent, true);

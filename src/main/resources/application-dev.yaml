@@ -31,12 +31,12 @@ spring:
           timeout: 10000
           writetimeout: 10000
 
-  app:
-    mail:
-      from: ${MAIL_FROM:test@dippen.com.tr}
-      from-name: ${MAIL_FROM_NAME:That Moment}
-
   data:
     redis:
       host: ${SPRING_REDIS_HOST:localhost}
       port: ${SPRING_REDIS_PORT:6379}
+
+app:
+  mail:
+    from: ${MAIL_FROM:test@dippen.com.tr}
+    from-name: ${MAIL_FROM_NAME:That Moment}
