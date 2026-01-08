@@ -1,0 +1,23 @@
+package com.thatmoment.modules.plan.service;
+
+import com.thatmoment.modules.plan.dto.request.CreatePlanRequest;
+import com.thatmoment.modules.plan.dto.request.UpdatePlanRequest;
+import com.thatmoment.modules.plan.dto.response.PlanResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+import java.time.LocalDate;
+import java.util.UUID;
+
+public interface PlanService {
+
+    PlanResponse createPlan(UUID userId, CreatePlanRequest request);
+
+    PlanResponse getPlan(UUID userId, UUID planId);
+
+    Page<PlanResponse> listPlans(UUID userId, LocalDate date, Pageable pageable);
+
+    PlanResponse updatePlan(UUID userId, UUID planId, UpdatePlanRequest request);
+
+    void deletePlan(UUID userId, UUID planId);
+}

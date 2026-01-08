@@ -28,4 +28,31 @@ public final class ApiDescriptions {
     public static final String LOGOUT_DESCRIPTION = "Revokes the current session or all sessions.";
     public static final String SESSIONS_SUMMARY = "Active sessions";
     public static final String SESSIONS_DESCRIPTION = "Returns active sessions for the current user.";
+
+    public static final String TAG_PLAN = "Plan";
+    public static final String TAG_PLAN_DESC = "Plan management endpoints";
+    public static final String PLAN_CREATE_SUMMARY = "Create plan";
+    public static final String PLAN_GET_SUMMARY = "Get plan";
+    public static final String PLAN_LIST_SUMMARY = "List plans";
+    public static final String PLAN_UPDATE_SUMMARY = "Update plan";
+    public static final String PLAN_DELETE_SUMMARY = "Delete plan";
+
+    public static final String PLAN_CATEGORY_CREATE_SUMMARY = "Create plan category";
+    public static final String PLAN_CATEGORY_GET_SUMMARY = "Get plan category";
+    public static final String PLAN_CATEGORY_LIST_SUMMARY = "List plan categories";
+    public static final String PLAN_CATEGORY_UPDATE_SUMMARY = "Update plan category";
+    public static final String PLAN_CATEGORY_DELETE_SUMMARY = "Delete plan category";
+
+    public static final String TAG_JOURNAL = "Journal";
+    public static final String TAG_JOURNAL_DESC = "Journal entries and tags";
+    public static final String JOURNAL_ENTRY_CREATE_SUMMARY = "Create journal entry";
+    public static final String JOURNAL_ENTRY_GET_SUMMARY = "Get journal entry";
+    public static final String JOURNAL_ENTRY_LIST_SUMMARY = "List journal entries";
+    public static final String JOURNAL_ENTRY_UPDATE_SUMMARY = "Update journal entry";
+    public static final String JOURNAL_ENTRY_DELETE_SUMMARY = "Delete journal entry";
+    public static final String JOURNAL_TAG_CREATE_SUMMARY = "Create journal tag";
+    public static final String JOURNAL_TAG_GET_SUMMARY = "Get journal tag";
+    public static final String JOURNAL_TAG_LIST_SUMMARY = "List journal tags";
+    public static final String JOURNAL_TAG_UPDATE_SUMMARY = "Update journal tag";
+    public static final String JOURNAL_TAG_DELETE_SUMMARY = "Delete journal tag";
 }
