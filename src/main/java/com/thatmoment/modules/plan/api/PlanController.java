@@ -5,16 +5,17 @@ import com.thatmoment.modules.common.constants.ApiDescriptions;
 import com.thatmoment.modules.plan.dto.request.CreatePlanRequest;
 import com.thatmoment.modules.plan.dto.request.UpdatePlanRequest;
 import com.thatmoment.modules.plan.dto.response.PlanResponse;
-import com.thatmoment.modules.plan.mapper.PlanMapper;
 import com.thatmoment.modules.plan.service.PlanService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.SortDefault;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
@@ -32,99 +34,65 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/plans")
 @Tag(name = ApiDescriptions.TAG_PLAN, description = ApiDescriptions.TAG_PLAN_DESC)
+@PreAuthorize("isAuthenticated()")
 public class PlanController {
 
     private final PlanService planService;
-    private final PlanMapper planMapper;
 
-    public PlanController(PlanService planService, PlanMapper planMapper) {
+    public PlanController(PlanService planService) {
         this.planService = planService;
-        this.planMapper = planMapper;
     }
 
     @PostMapping
     @Operation(summary = ApiDescriptions.PLAN_CREATE_SUMMARY)
-    public ResponseEntity<PlanResponse> createPlan(
+    @ResponseStatus(HttpStatus.CREATED)
+    public PlanResponse createPlan(
             @AuthenticationPrincipal UserPrincipal principal,
             @Valid @RequestBody CreatePlanRequest request
     ) {
-        if (principal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        PlanResponse response = planMapper.toResponse(
-                planService.createPlan(principal.getUserId(), request)
-        );
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return planService.createPlan(principal.getUserId(), request);
     }
 
     @GetMapping("/{id}")
     @Operation(summary = ApiDescriptions.PLAN_GET_SUMMARY)
-    public ResponseEntity<PlanResponse> getPlan(
+    public PlanResponse getPlan(
             @AuthenticationPrincipal UserPrincipal principal,
             @PathVariable UUID id
     ) {
-        if (principal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        PlanResponse response = planMapper.toResponse(
-                planService.getPlan(principal.getUserId(), id)
-        );
-        return ResponseEntity.ok(response);
+        return planService.getPlan(principal.getUserId(), id);
     }
 
     @GetMapping
     @Operation(summary = ApiDescriptions.PLAN_LIST_SUMMARY)
-    public ResponseEntity<Page<PlanResponse>> listPlans(
+    public Page<PlanResponse> listPlans(
             @AuthenticationPrincipal UserPrincipal principal,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size,
+            @PageableDefault(size = 20)
+            @SortDefault.SortDefaults({
+                    @SortDefault(sort = "planDate", direction = Sort.Direction.ASC),
+                    @SortDefault(sort = "startTime", direction = Sort.Direction.ASC)
+            }) Pageable pageable,
             @RequestParam(required = false) LocalDate date
     ) {
-        if (principal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        PageRequest pageRequest = PageRequest.of(
-                page,
-                size,
-                Sort.by("planDate").ascending().and(Sort.by("startTime").ascending())
-        );
-
-        Page<PlanResponse> response = planService.listPlans(principal.getUserId(), date, pageRequest)
-                .map(planMapper::toResponse);
-        return ResponseEntity.ok(response);
+        return planService.listPlans(principal.getUserId(), date, pageable);
     }
 
     @PutMapping("/{id}")
     @Operation(summary = ApiDescriptions.PLAN_UPDATE_SUMMARY)
-    public ResponseEntity<PlanResponse> updatePlan(
+    public PlanResponse updatePlan(
             @AuthenticationPrincipal UserPrincipal principal,
             @PathVariable UUID id,
             @Valid @RequestBody UpdatePlanRequest request
     ) {
-        if (principal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        PlanResponse response = planMapper.toResponse(
-                planService.updatePlan(principal.getUserId(), id, request)
-        );
-        return ResponseEntity.ok(response);
+        return planService.updatePlan(principal.getUserId(), id, request);
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = ApiDescriptions.PLAN_DELETE_SUMMARY)
-    public ResponseEntity<Void> deletePlan(
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deletePlan(
             @AuthenticationPrincipal UserPrincipal principal,
             @PathVariable UUID id
     ) {
-        if (principal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
         planService.deletePlan(principal.getUserId(), id);
-        return ResponseEntity.noContent().build();
     }
 }

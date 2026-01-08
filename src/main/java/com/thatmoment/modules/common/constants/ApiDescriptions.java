@@ -36,4 +36,10 @@ public final class ApiDescriptions {
     public static final String PLAN_LIST_SUMMARY = "List plans";
     public static final String PLAN_UPDATE_SUMMARY = "Update plan";
     public static final String PLAN_DELETE_SUMMARY = "Delete plan";
+
+    public static final String PLAN_CATEGORY_CREATE_SUMMARY = "Create plan category";
+    public static final String PLAN_CATEGORY_GET_SUMMARY = "Get plan category";
+    public static final String PLAN_CATEGORY_LIST_SUMMARY = "List plan categories";
+    public static final String PLAN_CATEGORY_UPDATE_SUMMARY = "Update plan category";
+    public static final String PLAN_CATEGORY_DELETE_SUMMARY = "Delete plan category";
 }

@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.UUID;
 
 public record UpdatePlanRequest(
         @NotBlank
@@ -20,8 +21,8 @@ public record UpdatePlanRequest(
         LocalTime startTime,
         @NotNull
         LocalTime endTime,
-        @Size(max = 20)
-        String color
+        @NotNull
+        UUID categoryId
 ) {
     @AssertTrue(message = "endTime must be after startTime")
     public boolean isTimeRangeValid() {

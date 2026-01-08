@@ -10,11 +10,14 @@ import java.time.LocalTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "plans", schema = "plan")
+@Table(name = "time_blocks", schema = "calendar")
 public class Plan extends SoftDeletableEntity {
 
     @Column(name = "user_id", nullable = false)
     private UUID userId;
+
+    @Column(name = "category_id", nullable = false)
+    private UUID categoryId;
 
     @Column(name = "title", nullable = false, length = 120)
     private String title;
@@ -22,7 +25,7 @@ public class Plan extends SoftDeletableEntity {
     @Column(name = "description", length = 1000)
     private String description;
 
-    @Column(name = "plan_date", nullable = false)
+    @Column(name = "block_date", nullable = false)
     private LocalDate planDate;
 
     @Column(name = "start_time", nullable = false)
@@ -31,20 +34,17 @@ public class Plan extends SoftDeletableEntity {
     @Column(name = "end_time", nullable = false)
     private LocalTime endTime;
 
-    @Column(name = "color", length = 20)
-    private String color;
-
     protected Plan() {
     }
 
     private Plan(Builder builder) {
         this.userId = builder.userId;
+        this.categoryId = builder.categoryId;
         this.title = builder.title;
         this.description = builder.description;
         this.planDate = builder.planDate;
         this.startTime = builder.startTime;
         this.endTime = builder.endTime;
-        this.color = builder.color;
     }
 
     public static Builder builder() {
@@ -53,6 +53,10 @@ public class Plan extends SoftDeletableEntity {
 
     public UUID getUserId() {
         return userId;
+    }
+
+    public UUID getCategoryId() {
+        return categoryId;
     }
 
     public String getTitle() {
@@ -75,40 +79,40 @@ public class Plan extends SoftDeletableEntity {
         return endTime;
     }
 
-    public String getColor() {
-        return color;
-    }
-
     public void updateDetails(
             String title,
             String description,
             LocalDate planDate,
             LocalTime startTime,
             LocalTime endTime,
-            String color
+            UUID categoryId
     ) {
         this.title = title;
         this.description = description;
         this.planDate = planDate;
         this.startTime = startTime;
         this.endTime = endTime;
-        this.color = color;
+        this.categoryId = categoryId;
     }
 
     public static final class Builder {
         private UUID userId;
+        private UUID categoryId;
         private String title;
         private String description;
         private LocalDate planDate;
         private LocalTime startTime;
         private LocalTime endTime;
-        private String color;
-
         private Builder() {
         }
 
         public Builder userId(UUID userId) {
             this.userId = userId;
+            return this;
+        }
+
+        public Builder categoryId(UUID categoryId) {
+            this.categoryId = categoryId;
             return this;
         }
 
@@ -134,11 +138,6 @@ public class Plan extends SoftDeletableEntity {
 
         public Builder endTime(LocalTime endTime) {
             this.endTime = endTime;
-            return this;
-        }
-
-        public Builder color(String color) {
-            this.color = color;
             return this;
         }
 

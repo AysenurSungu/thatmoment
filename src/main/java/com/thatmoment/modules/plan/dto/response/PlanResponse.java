@@ -11,6 +11,6 @@ public record PlanResponse(
         LocalDate planDate,
         LocalTime startTime,
         LocalTime endTime,
-        String color
+        UUID categoryId
 ) {
 }
