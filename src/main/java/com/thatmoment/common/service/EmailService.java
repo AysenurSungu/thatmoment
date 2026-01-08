@@ -1,7 +1,7 @@
-package com.thatmoment.modules.common.service;
+package com.thatmoment.common.service;
 
-import com.thatmoment.modules.common.config.AppMailProperties;
-import com.thatmoment.modules.common.constants.MailTemplates;
+import com.thatmoment.common.config.AppMailProperties;
+import com.thatmoment.common.constants.MailTemplates;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;

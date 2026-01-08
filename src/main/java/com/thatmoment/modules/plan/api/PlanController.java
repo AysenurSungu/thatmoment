@@ -1,7 +1,7 @@
 package com.thatmoment.modules.plan.api;
 
 import com.thatmoment.modules.auth.security.UserPrincipal;
-import com.thatmoment.modules.common.constants.ApiDescriptions;
+import com.thatmoment.common.constants.ApiDescriptions;
 import com.thatmoment.modules.plan.dto.request.CreatePlanRequest;
 import com.thatmoment.modules.plan.dto.request.UpdatePlanRequest;
 import com.thatmoment.modules.plan.dto.response.PlanResponse;

@@ -1,6 +1,6 @@
-package com.thatmoment.modules.common.api;
+package com.thatmoment.common.api;
 
-import com.thatmoment.modules.common.constants.ApiDescriptions;
+import com.thatmoment.common.constants.ApiDescriptions;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;

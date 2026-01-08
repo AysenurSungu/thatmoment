@@ -1,7 +1,7 @@
 package com.thatmoment.modules.auth.domain;
 
 import com.thatmoment.modules.auth.domain.enums.AuthMethod;
-import com.thatmoment.modules.common.entity.SoftDeletableEntity;
+import com.thatmoment.common.entity.SoftDeletableEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

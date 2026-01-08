@@ -1,7 +1,7 @@
 package com.thatmoment.modules.auth.domain;
 
 import com.thatmoment.modules.auth.domain.enums.VerificationPurpose;
-import com.thatmoment.modules.common.entity.BaseEntity;
+import com.thatmoment.common.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

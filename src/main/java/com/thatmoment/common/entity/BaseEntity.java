@@ -1,4 +1,4 @@
-package com.thatmoment.modules.common.entity;
+package com.thatmoment.common.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;

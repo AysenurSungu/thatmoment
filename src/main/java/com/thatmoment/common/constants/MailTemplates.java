@@ -1,4 +1,4 @@
-package com.thatmoment.modules.common.constants;
+package com.thatmoment.common.constants;
 
 public final class MailTemplates {
 

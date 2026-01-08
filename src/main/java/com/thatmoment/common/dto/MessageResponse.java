@@ -1,4 +1,4 @@
-package com.thatmoment.modules.common.dto;
+package com.thatmoment.common.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

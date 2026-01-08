@@ -1,4 +1,4 @@
-package com.thatmoment.modules.common.constants;
+package com.thatmoment.common.constants;
 
 public final class ApiDescriptions {
 
@@ -42,4 +42,17 @@ public final class ApiDescriptions {
     public static final String PLAN_CATEGORY_LIST_SUMMARY = "List plan categories";
     public static final String PLAN_CATEGORY_UPDATE_SUMMARY = "Update plan category";
     public static final String PLAN_CATEGORY_DELETE_SUMMARY = "Delete plan category";
+
+    public static final String TAG_JOURNAL = "Journal";
+    public static final String TAG_JOURNAL_DESC = "Journal entries and tags";
+    public static final String JOURNAL_ENTRY_CREATE_SUMMARY = "Create journal entry";
+    public static final String JOURNAL_ENTRY_GET_SUMMARY = "Get journal entry";
+    public static final String JOURNAL_ENTRY_LIST_SUMMARY = "List journal entries";
+    public static final String JOURNAL_ENTRY_UPDATE_SUMMARY = "Update journal entry";
+    public static final String JOURNAL_ENTRY_DELETE_SUMMARY = "Delete journal entry";
+    public static final String JOURNAL_TAG_CREATE_SUMMARY = "Create journal tag";
+    public static final String JOURNAL_TAG_GET_SUMMARY = "Get journal tag";
+    public static final String JOURNAL_TAG_LIST_SUMMARY = "List journal tags";
+    public static final String JOURNAL_TAG_UPDATE_SUMMARY = "Update journal tag";
+    public static final String JOURNAL_TAG_DELETE_SUMMARY = "Delete journal tag";
 }

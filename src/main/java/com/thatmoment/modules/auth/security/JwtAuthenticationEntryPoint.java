@@ -1,7 +1,7 @@
 package com.thatmoment.modules.auth.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.thatmoment.modules.common.constants.AuthMessages;
+import com.thatmoment.common.constants.AuthMessages;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;

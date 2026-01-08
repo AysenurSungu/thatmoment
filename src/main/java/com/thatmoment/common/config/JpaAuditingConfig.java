@@ -1,4 +1,4 @@
-package com.thatmoment.modules.common.config;
+package com.thatmoment.common.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;

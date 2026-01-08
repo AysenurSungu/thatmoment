@@ -1,6 +1,6 @@
-package com.thatmoment.modules.common.exception;
+package com.thatmoment.common.exception;
 
-import com.thatmoment.modules.common.exception.exceptions.TooManyRequestsException;
+import com.thatmoment.common.exception.exceptions.TooManyRequestsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;

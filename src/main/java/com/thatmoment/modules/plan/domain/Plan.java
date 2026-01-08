@@ -1,6 +1,6 @@
 package com.thatmoment.modules.plan.domain;
 
-import com.thatmoment.modules.common.entity.SoftDeletableEntity;
+import com.thatmoment.common.entity.SoftDeletableEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
