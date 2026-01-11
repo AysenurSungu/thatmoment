@@ -19,6 +19,10 @@ Profiles
 - spring.profiles.active is set via environment variable
   Example: SPRING_PROFILES_ACTIVE=dev
 
-Docs
-- DEVELOPMENT.md (local + docker usage)
-- STANDARDS.md (project rules)
+## Project Rules (Required)
+Before making any change, read:
+- **AGENTS.md** (how to work in this repo)
+- **BE-STANDARDS.md** (backend coding + architecture standards)
+
+PRs must follow these rules. If something conflicts, **AGENTS.md + BE-STANDARDS.md** are the source of truth.
+
