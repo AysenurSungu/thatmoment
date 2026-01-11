@@ -2,6 +2,7 @@ package com.thatmoment.common.api;
 
 import com.thatmoment.common.constants.ApiDescriptions;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,6 +22,7 @@ public class HealthController {
             summary = ApiDescriptions.HEALTH_SUMMARY,
             description = ApiDescriptions.HEALTH_DESCRIPTION
     )
+    @SecurityRequirements
     public Map<String, Object> health() {
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("status", "UP");

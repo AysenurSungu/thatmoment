@@ -19,6 +19,7 @@ import com.thatmoment.common.constants.AuthMessages;
 import com.thatmoment.common.dto.MessageResponse;
 import com.thatmoment.common.exception.exceptions.UnauthorizedException;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -55,6 +56,7 @@ public class AuthController {
             summary = ApiDescriptions.REGISTER_SUMMARY,
             description = ApiDescriptions.REGISTER_DESCRIPTION
     )
+    @SecurityRequirements
     @ResponseStatus(HttpStatus.CREATED)
     public RegisterResponse register(@Valid @RequestBody RegisterRequest request) {
         return authService.register(request);
@@ -65,6 +67,7 @@ public class AuthController {
             summary = ApiDescriptions.VERIFY_EMAIL_SUMMARY,
             description = ApiDescriptions.VERIFY_EMAIL_DESCRIPTION
     )
+    @SecurityRequirements
     public MessageResponse verifyEmail(@Valid @RequestBody VerifyEmailRequest request) {
         return authService.verifyEmail(request);
     }
@@ -74,6 +77,7 @@ public class AuthController {
             summary = ApiDescriptions.RESEND_CODE_SUMMARY,
             description = ApiDescriptions.RESEND_CODE_DESCRIPTION
     )
+    @SecurityRequirements
     public MessageResponse resendCode(@Valid @RequestBody ResendCodeRequest request) {
         return authService.resendVerificationCode(request);
     }
@@ -83,6 +87,7 @@ public class AuthController {
             summary = ApiDescriptions.LOGIN_SUMMARY,
             description = ApiDescriptions.LOGIN_DESCRIPTION
     )
+    @SecurityRequirements
     public MessageResponse login(@Valid @RequestBody LoginRequest request) {
         return authService.sendLoginCode(request);
     }
@@ -92,6 +97,7 @@ public class AuthController {
             summary = ApiDescriptions.LOGIN_VERIFY_SUMMARY,
             description = ApiDescriptions.LOGIN_VERIFY_DESCRIPTION
     )
+    @SecurityRequirements
     public ResponseEntity<AuthTokenResponse> verifyLogin(
             @Valid @RequestBody LoginVerifyRequest request,
             HttpServletRequest httpRequest,
@@ -117,6 +123,7 @@ public class AuthController {
             summary = ApiDescriptions.REFRESH_SUMMARY,
             description = ApiDescriptions.REFRESH_DESCRIPTION
     )
+    @SecurityRequirements
     public ResponseEntity<AuthTokenResponse> refresh(
             @RequestBody(required = false) RefreshTokenRequest request,
             @CookieValue(name = "refreshToken", required = false) String refreshTokenCookie,
