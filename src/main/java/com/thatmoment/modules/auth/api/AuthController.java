@@ -22,12 +22,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -46,9 +47,9 @@ public class AuthController {
             summary = ApiDescriptions.REGISTER_SUMMARY,
             description = ApiDescriptions.REGISTER_DESCRIPTION
     )
-    public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest request) {
-        RegisterResponse response = authService.register(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    @ResponseStatus(HttpStatus.CREATED)
+    public RegisterResponse register(@Valid @RequestBody RegisterRequest request) {
+        return authService.register(request);
     }
 
     @PostMapping("/verify-email")
@@ -56,9 +57,8 @@ public class AuthController {
             summary = ApiDescriptions.VERIFY_EMAIL_SUMMARY,
             description = ApiDescriptions.VERIFY_EMAIL_DESCRIPTION
     )
-    public ResponseEntity<MessageResponse> verifyEmail(@Valid @RequestBody VerifyEmailRequest request) {
-        MessageResponse response = authService.verifyEmail(request);
-        return ResponseEntity.ok(response);
+    public MessageResponse verifyEmail(@Valid @RequestBody VerifyEmailRequest request) {
+        return authService.verifyEmail(request);
     }
 
     @PostMapping("/resend-code")
@@ -66,9 +66,8 @@ public class AuthController {
             summary = ApiDescriptions.RESEND_CODE_SUMMARY,
             description = ApiDescriptions.RESEND_CODE_DESCRIPTION
     )
-    public ResponseEntity<MessageResponse> resendCode(@Valid @RequestBody ResendCodeRequest request) {
-        MessageResponse response = authService.resendVerificationCode(request);
-        return ResponseEntity.ok(response);
+    public MessageResponse resendCode(@Valid @RequestBody ResendCodeRequest request) {
+        return authService.resendVerificationCode(request);
     }
 
     @PostMapping("/login")
@@ -76,9 +75,8 @@ public class AuthController {
             summary = ApiDescriptions.LOGIN_SUMMARY,
             description = ApiDescriptions.LOGIN_DESCRIPTION
     )
-    public ResponseEntity<MessageResponse> login(@Valid @RequestBody LoginRequest request) {
-        MessageResponse response = authService.sendLoginCode(request);
-        return ResponseEntity.ok(response);
+    public MessageResponse login(@Valid @RequestBody LoginRequest request) {
+        return authService.sendLoginCode(request);
     }
 
     @PostMapping("/login/verify")
@@ -86,15 +84,14 @@ public class AuthController {
             summary = ApiDescriptions.LOGIN_VERIFY_SUMMARY,
             description = ApiDescriptions.LOGIN_VERIFY_DESCRIPTION
     )
-    public ResponseEntity<AuthTokenResponse> verifyLogin(
+    public AuthTokenResponse verifyLogin(
             @Valid @RequestBody LoginVerifyRequest request,
             HttpServletRequest httpRequest
     ) {
         String ipAddress = getClientIp(httpRequest);
         String userAgent = httpRequest.getHeader("User-Agent");
 
-        AuthTokenResponse response = authService.verifyLoginCode(request, ipAddress, userAgent);
-        return ResponseEntity.ok(response);
+        return authService.verifyLoginCode(request, ipAddress, userAgent);
     }
 
     @PostMapping("/refresh")
@@ -102,9 +99,8 @@ public class AuthController {
             summary = ApiDescriptions.REFRESH_SUMMARY,
             description = ApiDescriptions.REFRESH_DESCRIPTION
     )
-    public ResponseEntity<AuthTokenResponse> refresh(@Valid @RequestBody RefreshTokenRequest request) {
-        AuthTokenResponse response = authService.refreshToken(request);
-        return ResponseEntity.ok(response);
+    public AuthTokenResponse refresh(@Valid @RequestBody RefreshTokenRequest request) {
+        return authService.refreshToken(request);
     }
 
     @PostMapping("/logout")
@@ -112,19 +108,15 @@ public class AuthController {
             summary = ApiDescriptions.LOGOUT_SUMMARY,
             description = ApiDescriptions.LOGOUT_DESCRIPTION
     )
-    public ResponseEntity<MessageResponse> logout(
+    @PreAuthorize("isAuthenticated()")
+    public MessageResponse logout(
             @AuthenticationPrincipal UserPrincipal principal,
             @RequestBody(required = false) LogoutRequest request
     ) {
-        if (principal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(MessageResponse.of(AuthMessages.AUTHENTICATION_REQUIRED));
-        }
-
         boolean allDevices = request != null && request.isAllDevices();
 
         authService.logout(principal.getUserId(), principal.getSessionId(), allDevices);
-        return ResponseEntity.ok(MessageResponse.of(AuthMessages.LOGOUT_SUCCESS));
+        return MessageResponse.of(AuthMessages.LOGOUT_SUCCESS);
     }
 
     @GetMapping("/sessions")
@@ -132,13 +124,10 @@ public class AuthController {
             summary = ApiDescriptions.SESSIONS_SUMMARY,
             description = ApiDescriptions.SESSIONS_DESCRIPTION
     )
-    public ResponseEntity<List<SessionResponse>> getActiveSessions(
+    @PreAuthorize("isAuthenticated()")
+    public List<SessionResponse> getActiveSessions(
             @AuthenticationPrincipal UserPrincipal principal
     ) {
-        if (principal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
         List<Session> sessions = authService.getActiveSessions(principal.getUserId());
         List<SessionResponse> response = sessions.stream()
                 .map(s -> SessionResponse.builder()
@@ -152,7 +141,7 @@ public class AuthController {
                         .build())
                 .toList();
 
-        return ResponseEntity.ok(response);
+        return response;
     }
 
     private String getClientIp(HttpServletRequest request) {

@@ -3,7 +3,6 @@ package com.thatmoment.common.api;
 import com.thatmoment.common.constants.ApiDescriptions;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,11 +21,11 @@ public class HealthController {
             summary = ApiDescriptions.HEALTH_SUMMARY,
             description = ApiDescriptions.HEALTH_DESCRIPTION
     )
-    public ResponseEntity<Map<String, Object>> health() {
+    public Map<String, Object> health() {
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("status", "UP");
         response.put("service", "thatmoment-api");
         response.put("timestamp", Instant.now().toString());
-        return ResponseEntity.ok(response);
+        return response;
     }
 }
