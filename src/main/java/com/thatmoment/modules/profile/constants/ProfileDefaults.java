@@ -17,4 +17,5 @@ public final class ProfileDefaults {
     public static final WeekStartDay WEEK_START_DAY = WeekStartDay.MONDAY;
     public static final TimeFormat TIME_FORMAT = TimeFormat.H24;
     public static final LocalTime DAILY_REMINDER_TIME = LocalTime.of(9, 0);
+    public static final Boolean JOURNAL_LOCK_ENABLED = Boolean.FALSE;
 }

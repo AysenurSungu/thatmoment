@@ -49,6 +49,12 @@ public class UserPreferences extends SoftDeletableEntity {
     @Column(name = "daily_reminder_time")
     private LocalTime dailyReminderTime;
 
+    @Column(name = "journal_lock_enabled", nullable = false)
+    private Boolean journalLockEnabled;
+
+    @Column(name = "journal_password_hash", length = 255)
+    private String journalPasswordHash;
+
     protected UserPreferences() {
     }
 
@@ -64,6 +70,8 @@ public class UserPreferences extends SoftDeletableEntity {
         this.notificationStreaks = builder.notificationStreaks;
         this.notificationDailyReminder = builder.notificationDailyReminder;
         this.dailyReminderTime = builder.dailyReminderTime;
+        this.journalLockEnabled = builder.journalLockEnabled;
+        this.journalPasswordHash = builder.journalPasswordHash;
     }
 
     public static Builder builder() {
@@ -114,6 +122,14 @@ public class UserPreferences extends SoftDeletableEntity {
         return dailyReminderTime;
     }
 
+    public Boolean getJournalLockEnabled() {
+        return journalLockEnabled;
+    }
+
+    public String getJournalPasswordHash() {
+        return journalPasswordHash;
+    }
+
     public void updateDetails(
             Theme theme,
             Language language,
@@ -138,6 +154,16 @@ public class UserPreferences extends SoftDeletableEntity {
         this.dailyReminderTime = dailyReminderTime;
     }
 
+    public void setJournalLock(String passwordHash) {
+        this.journalLockEnabled = Boolean.TRUE;
+        this.journalPasswordHash = passwordHash;
+    }
+
+    public void disableJournalLock() {
+        this.journalLockEnabled = Boolean.FALSE;
+        this.journalPasswordHash = null;
+    }
+
     public static final class Builder {
         private UUID userId;
         private Theme theme;
@@ -150,6 +176,8 @@ public class UserPreferences extends SoftDeletableEntity {
         private Boolean notificationStreaks;
         private Boolean notificationDailyReminder;
         private LocalTime dailyReminderTime;
+        private Boolean journalLockEnabled;
+        private String journalPasswordHash;
 
         private Builder() {
         }
@@ -206,6 +234,16 @@ public class UserPreferences extends SoftDeletableEntity {
 
         public Builder dailyReminderTime(LocalTime dailyReminderTime) {
             this.dailyReminderTime = dailyReminderTime;
+            return this;
+        }
+
+        public Builder journalLockEnabled(Boolean journalLockEnabled) {
+            this.journalLockEnabled = journalLockEnabled;
+            return this;
+        }
+
+        public Builder journalPasswordHash(String journalPasswordHash) {
+            this.journalPasswordHash = journalPasswordHash;
             return this;
         }
 

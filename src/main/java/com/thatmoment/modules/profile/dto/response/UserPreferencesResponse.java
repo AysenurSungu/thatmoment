@@ -18,6 +18,7 @@ public record UserPreferencesResponse(
         Boolean notificationAchievements,
         Boolean notificationStreaks,
         Boolean notificationDailyReminder,
-        LocalTime dailyReminderTime
+        LocalTime dailyReminderTime,
+        Boolean journalLockEnabled
 ) {
 }
