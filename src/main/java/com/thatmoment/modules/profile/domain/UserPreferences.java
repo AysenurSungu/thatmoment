@@ -5,6 +5,10 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 
+import com.thatmoment.modules.profile.domain.enums.Language;
+import com.thatmoment.modules.profile.domain.enums.Theme;
+import com.thatmoment.modules.profile.domain.enums.TimeFormat;
+import com.thatmoment.modules.profile.domain.enums.WeekStartDay;
 import java.time.LocalTime;
 import java.util.UUID;
 
@@ -16,19 +20,19 @@ public class UserPreferences extends SoftDeletableEntity {
     private UUID userId;
 
     @Column(name = "theme", length = 20)
-    private String theme;
+    private Theme theme;
 
     @Column(name = "language", length = 10)
-    private String language;
+    private Language language;
 
     @Column(name = "timezone", length = 50)
     private String timezone;
 
     @Column(name = "week_start_day", length = 10)
-    private String weekStartDay;
+    private WeekStartDay weekStartDay;
 
     @Column(name = "time_format", length = 5)
-    private String timeFormat;
+    private TimeFormat timeFormat;
 
     @Column(name = "notification_routines")
     private Boolean notificationRoutines;
@@ -70,11 +74,11 @@ public class UserPreferences extends SoftDeletableEntity {
         return userId;
     }
 
-    public String getTheme() {
+    public Theme getTheme() {
         return theme;
     }
 
-    public String getLanguage() {
+    public Language getLanguage() {
         return language;
     }
 
@@ -82,11 +86,11 @@ public class UserPreferences extends SoftDeletableEntity {
         return timezone;
     }
 
-    public String getWeekStartDay() {
+    public WeekStartDay getWeekStartDay() {
         return weekStartDay;
     }
 
-    public String getTimeFormat() {
+    public TimeFormat getTimeFormat() {
         return timeFormat;
     }
 
@@ -111,11 +115,11 @@ public class UserPreferences extends SoftDeletableEntity {
     }
 
     public void updateDetails(
-            String theme,
-            String language,
+            Theme theme,
+            Language language,
             String timezone,
-            String weekStartDay,
-            String timeFormat,
+            WeekStartDay weekStartDay,
+            TimeFormat timeFormat,
             Boolean notificationRoutines,
             Boolean notificationAchievements,
             Boolean notificationStreaks,
@@ -136,11 +140,11 @@ public class UserPreferences extends SoftDeletableEntity {
 
     public static final class Builder {
         private UUID userId;
-        private String theme;
-        private String language;
+        private Theme theme;
+        private Language language;
         private String timezone;
-        private String weekStartDay;
-        private String timeFormat;
+        private WeekStartDay weekStartDay;
+        private TimeFormat timeFormat;
         private Boolean notificationRoutines;
         private Boolean notificationAchievements;
         private Boolean notificationStreaks;
@@ -155,12 +159,12 @@ public class UserPreferences extends SoftDeletableEntity {
             return this;
         }
 
-        public Builder theme(String theme) {
+        public Builder theme(Theme theme) {
             this.theme = theme;
             return this;
         }
 
-        public Builder language(String language) {
+        public Builder language(Language language) {
             this.language = language;
             return this;
         }
@@ -170,12 +174,12 @@ public class UserPreferences extends SoftDeletableEntity {
             return this;
         }
 
-        public Builder weekStartDay(String weekStartDay) {
+        public Builder weekStartDay(WeekStartDay weekStartDay) {
             this.weekStartDay = weekStartDay;
             return this;
         }
 
-        public Builder timeFormat(String timeFormat) {
+        public Builder timeFormat(TimeFormat timeFormat) {
             this.timeFormat = timeFormat;
             return this;
         }
