@@ -254,7 +254,11 @@ public class AuthService {
 
     @Transactional
     public AuthTokenResponse refreshToken(RefreshTokenRequest request) {
-        String refreshTokenStr = request.getRefreshToken();
+        return refreshToken(request.getRefreshToken());
+    }
+
+    @Transactional
+    public AuthTokenResponse refreshToken(String refreshTokenStr) {
 
         if (!jwtService.isTokenValid(refreshTokenStr)) {
             throw new UnauthorizedException(AuthMessages.INVALID_REFRESH_TOKEN);
