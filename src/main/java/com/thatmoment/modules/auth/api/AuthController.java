@@ -13,21 +13,30 @@ import com.thatmoment.modules.auth.dto.response.SessionResponse;
 import com.thatmoment.modules.auth.domain.Session;
 import com.thatmoment.modules.auth.security.UserPrincipal;
 import com.thatmoment.modules.auth.service.AuthService;
+import com.thatmoment.modules.auth.security.AuthCookieService;
 import com.thatmoment.common.constants.ApiDescriptions;
 import com.thatmoment.common.constants.AuthMessages;
 import com.thatmoment.common.dto.MessageResponse;
+import com.thatmoment.common.exception.exceptions.UnauthorizedException;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -40,15 +49,17 @@ import java.net.InetAddress;
 public class AuthController {
 
     private final AuthService authService;
+    private final AuthCookieService authCookieService;
 
     @PostMapping("/register")
     @Operation(
             summary = ApiDescriptions.REGISTER_SUMMARY,
             description = ApiDescriptions.REGISTER_DESCRIPTION
     )
-    public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest request) {
-        RegisterResponse response = authService.register(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    @SecurityRequirements
+    @ResponseStatus(HttpStatus.CREATED)
+    public RegisterResponse register(@Valid @RequestBody RegisterRequest request) {
+        return authService.register(request);
     }
 
     @PostMapping("/verify-email")
@@ -56,9 +67,9 @@ public class AuthController {
             summary = ApiDescriptions.VERIFY_EMAIL_SUMMARY,
             description = ApiDescriptions.VERIFY_EMAIL_DESCRIPTION
     )
-    public ResponseEntity<MessageResponse> verifyEmail(@Valid @RequestBody VerifyEmailRequest request) {
-        MessageResponse response = authService.verifyEmail(request);
-        return ResponseEntity.ok(response);
+    @SecurityRequirements
+    public MessageResponse verifyEmail(@Valid @RequestBody VerifyEmailRequest request) {
+        return authService.verifyEmail(request);
     }
 
     @PostMapping("/resend-code")
@@ -66,9 +77,9 @@ public class AuthController {
             summary = ApiDescriptions.RESEND_CODE_SUMMARY,
             description = ApiDescriptions.RESEND_CODE_DESCRIPTION
     )
-    public ResponseEntity<MessageResponse> resendCode(@Valid @RequestBody ResendCodeRequest request) {
-        MessageResponse response = authService.resendVerificationCode(request);
-        return ResponseEntity.ok(response);
+    @SecurityRequirements
+    public MessageResponse resendCode(@Valid @RequestBody ResendCodeRequest request) {
+        return authService.resendVerificationCode(request);
     }
 
     @PostMapping("/login")
@@ -76,9 +87,9 @@ public class AuthController {
             summary = ApiDescriptions.LOGIN_SUMMARY,
             description = ApiDescriptions.LOGIN_DESCRIPTION
     )
-    public ResponseEntity<MessageResponse> login(@Valid @RequestBody LoginRequest request) {
-        MessageResponse response = authService.sendLoginCode(request);
-        return ResponseEntity.ok(response);
+    @SecurityRequirements
+    public MessageResponse login(@Valid @RequestBody LoginRequest request) {
+        return authService.sendLoginCode(request);
     }
 
     @PostMapping("/login/verify")
@@ -86,15 +97,25 @@ public class AuthController {
             summary = ApiDescriptions.LOGIN_VERIFY_SUMMARY,
             description = ApiDescriptions.LOGIN_VERIFY_DESCRIPTION
     )
+    @SecurityRequirements
     public ResponseEntity<AuthTokenResponse> verifyLogin(
             @Valid @RequestBody LoginVerifyRequest request,
-            HttpServletRequest httpRequest
+            HttpServletRequest httpRequest,
+            @RequestHeader(value = "X-Platform", defaultValue = "web") String platform
     ) {
         String ipAddress = getClientIp(httpRequest);
         String userAgent = httpRequest.getHeader("User-Agent");
 
         AuthTokenResponse response = authService.verifyLoginCode(request, ipAddress, userAgent);
-        return ResponseEntity.ok(response);
+
+        if (isMobilePlatform(platform)) {
+            return ResponseEntity.ok(response);
+        }
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, authCookieService.buildAccessCookie(response.getAccessToken()).toString())
+                .header(HttpHeaders.SET_COOKIE, authCookieService.buildRefreshCookie(response.getRefreshToken()).toString())
+                .body(AuthTokenResponse.web(response));
     }
 
     @PostMapping("/refresh")
@@ -102,9 +123,23 @@ public class AuthController {
             summary = ApiDescriptions.REFRESH_SUMMARY,
             description = ApiDescriptions.REFRESH_DESCRIPTION
     )
-    public ResponseEntity<AuthTokenResponse> refresh(@Valid @RequestBody RefreshTokenRequest request) {
-        AuthTokenResponse response = authService.refreshToken(request);
-        return ResponseEntity.ok(response);
+    @SecurityRequirements
+    public ResponseEntity<AuthTokenResponse> refresh(
+            @RequestBody(required = false) RefreshTokenRequest request,
+            @CookieValue(name = "refreshToken", required = false) String refreshTokenCookie,
+            @RequestHeader(value = "X-Platform", defaultValue = "web") String platform
+    ) {
+        String refreshToken = resolveRefreshToken(platform, request, refreshTokenCookie);
+        AuthTokenResponse response = authService.refreshToken(refreshToken);
+
+        if (isMobilePlatform(platform)) {
+            return ResponseEntity.ok(response);
+        }
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, authCookieService.buildAccessCookie(response.getAccessToken()).toString())
+                .header(HttpHeaders.SET_COOKIE, authCookieService.buildRefreshCookie(response.getRefreshToken()).toString())
+                .body(AuthTokenResponse.web(response));
     }
 
     @PostMapping("/logout")
@@ -112,19 +147,24 @@ public class AuthController {
             summary = ApiDescriptions.LOGOUT_SUMMARY,
             description = ApiDescriptions.LOGOUT_DESCRIPTION
     )
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<MessageResponse> logout(
             @AuthenticationPrincipal UserPrincipal principal,
-            @RequestBody(required = false) LogoutRequest request
+            @RequestBody(required = false) LogoutRequest request,
+            @RequestHeader(value = "X-Platform", defaultValue = "web") String platform
     ) {
-        if (principal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(MessageResponse.of(AuthMessages.AUTHENTICATION_REQUIRED));
-        }
-
         boolean allDevices = request != null && request.isAllDevices();
 
         authService.logout(principal.getUserId(), principal.getSessionId(), allDevices);
-        return ResponseEntity.ok(MessageResponse.of(AuthMessages.LOGOUT_SUCCESS));
+
+        if (isMobilePlatform(platform)) {
+            return ResponseEntity.ok(MessageResponse.of(AuthMessages.LOGOUT_SUCCESS));
+        }
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, authCookieService.clearAccessCookie().toString())
+                .header(HttpHeaders.SET_COOKIE, authCookieService.clearRefreshCookie().toString())
+                .body(MessageResponse.of(AuthMessages.LOGOUT_SUCCESS));
     }
 
     @GetMapping("/sessions")
@@ -132,13 +172,10 @@ public class AuthController {
             summary = ApiDescriptions.SESSIONS_SUMMARY,
             description = ApiDescriptions.SESSIONS_DESCRIPTION
     )
-    public ResponseEntity<List<SessionResponse>> getActiveSessions(
+    @PreAuthorize("isAuthenticated()")
+    public List<SessionResponse> getActiveSessions(
             @AuthenticationPrincipal UserPrincipal principal
     ) {
-        if (principal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
         List<Session> sessions = authService.getActiveSessions(principal.getUserId());
         List<SessionResponse> response = sessions.stream()
                 .map(s -> SessionResponse.builder()
@@ -152,7 +189,7 @@ public class AuthController {
                         .build())
                 .toList();
 
-        return ResponseEntity.ok(response);
+        return response;
     }
 
     private String getClientIp(HttpServletRequest request) {
@@ -165,5 +202,28 @@ public class AuthController {
 
     private String formatIp(InetAddress ipAddress) {
         return ipAddress != null ? ipAddress.getHostAddress() : null;
+    }
+
+    private boolean isMobilePlatform(String platform) {
+        return platform != null && platform.equalsIgnoreCase("mobile");
+    }
+
+    private String resolveRefreshToken(
+            String platform,
+            RefreshTokenRequest request,
+            String refreshTokenCookie
+    ) {
+        if (isMobilePlatform(platform)) {
+            if (request == null || !StringUtils.hasText(request.getRefreshToken())) {
+                throw new UnauthorizedException(AuthMessages.INVALID_REFRESH_TOKEN);
+            }
+            return request.getRefreshToken();
+        }
+
+        if (!StringUtils.hasText(refreshTokenCookie)) {
+            throw new UnauthorizedException(AuthMessages.INVALID_REFRESH_TOKEN);
+        }
+
+        return refreshTokenCookie;
     }
 }

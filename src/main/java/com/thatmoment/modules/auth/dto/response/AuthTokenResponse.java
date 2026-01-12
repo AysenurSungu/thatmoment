@@ -1,5 +1,6 @@
 package com.thatmoment.modules.auth.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -7,6 +8,7 @@ import java.util.UUID;
 
 @Getter
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class AuthTokenResponse {
 
     private String accessToken;
@@ -33,6 +35,16 @@ public class AuthTokenResponse {
                 .userId(userId)
                 .email(email)
                 .sessionId(sessionId)
+                .build();
+    }
+
+    public static AuthTokenResponse web(AuthTokenResponse source) {
+        return AuthTokenResponse.builder()
+                .expiresIn(source.getExpiresIn())
+                .tokenType(source.getTokenType())
+                .userId(source.getUserId())
+                .email(source.getEmail())
+                .sessionId(source.getSessionId())
                 .build();
     }
 }

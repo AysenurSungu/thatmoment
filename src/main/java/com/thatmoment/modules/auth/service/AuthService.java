@@ -24,6 +24,8 @@ import com.thatmoment.common.exception.exceptions.ForbiddenException;
 import com.thatmoment.common.exception.exceptions.NotFoundException;
 import com.thatmoment.common.exception.exceptions.UnauthorizedException;
 import com.thatmoment.common.service.EmailService;
+import com.thatmoment.modules.profile.service.UserPreferencesService;
+import com.thatmoment.modules.profile.service.UserProfileService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -51,6 +53,8 @@ public class AuthService {
     private final EmailService emailService;
     private final JwtService jwtService;
     private final SessionService sessionService;
+    private final UserProfileService userProfileService;
+    private final UserPreferencesService userPreferencesService;
     private final SecureRandom secureRandom = new SecureRandom();
 
     public RegisterResponse register(RegisterRequest request) {
@@ -65,6 +69,8 @@ public class AuthService {
                 .authMethod(AuthMethod.EMAIL)
                 .build();
         User savedUser = userRepository.save(user);
+        userProfileService.ensureProfileExists(savedUser.getId());
+        userPreferencesService.ensurePreferencesExists(savedUser.getId());
 
         String code = generateVerificationCode();
 
@@ -254,7 +260,11 @@ public class AuthService {
 
     @Transactional
     public AuthTokenResponse refreshToken(RefreshTokenRequest request) {
-        String refreshTokenStr = request.getRefreshToken();
+        return refreshToken(request.getRefreshToken());
+    }
+
+    @Transactional
+    public AuthTokenResponse refreshToken(String refreshTokenStr) {
 
         if (!jwtService.isTokenValid(refreshTokenStr)) {
             throw new UnauthorizedException(AuthMessages.INVALID_REFRESH_TOKEN);

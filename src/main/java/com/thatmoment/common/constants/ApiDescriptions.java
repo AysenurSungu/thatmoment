@@ -55,4 +55,14 @@ public final class ApiDescriptions {
     public static final String JOURNAL_TAG_LIST_SUMMARY = "List journal tags";
     public static final String JOURNAL_TAG_UPDATE_SUMMARY = "Update journal tag";
     public static final String JOURNAL_TAG_DELETE_SUMMARY = "Delete journal tag";
+
+    public static final String TAG_PROFILE = "Profile";
+    public static final String TAG_PROFILE_DESC = "User profile and preferences";
+    public static final String PROFILE_GET_SUMMARY = "Get user profile";
+    public static final String PROFILE_UPDATE_SUMMARY = "Update user profile";
+    public static final String PREFERENCES_GET_SUMMARY = "Get user preferences";
+    public static final String PREFERENCES_UPDATE_SUMMARY = "Update user preferences";
+    public static final String JOURNAL_LOCK_UPDATE_SUMMARY = "Enable or disable journal lock";
+    public static final String JOURNAL_LOCK_VERIFY_SUMMARY = "Verify journal lock password";
+    public static final String JOURNAL_LOCK_PASSWORD_UPDATE_SUMMARY = "Change journal lock password";
 }

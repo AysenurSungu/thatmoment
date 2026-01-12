@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.Date;
 import java.util.UUID;
 
 @Service
@@ -47,8 +46,8 @@ public class JwtService {
                 .claim("sessionId", sessionId.toString())
                 .claim("email", email)
                 .claim("type", "access")
-                .issuedAt(Date.from(now))
-                .expiration(Date.from(expiry))
+                .issuedAt(toDate(now))
+                .expiration(toDate(expiry))
                 .signWith(secretKey)
                 .compact();
     }
@@ -61,8 +60,8 @@ public class JwtService {
                 .subject(userId.toString())
                 .claim("sessionId", sessionId.toString())
                 .claim("type", "refresh")
-                .issuedAt(Date.from(now))
-                .expiration(Date.from(expiry))
+                .issuedAt(toDate(now))
+                .expiration(toDate(expiry))
                 .signWith(secretKey)
                 .compact();
     }
@@ -99,7 +98,7 @@ public class JwtService {
     public boolean isTokenExpired(String token) {
         try {
             Claims claims = validateToken(token);
-            return claims.getExpiration().before(new Date());
+            return claims.getExpiration().toInstant().isBefore(Instant.now());
         } catch (ExpiredJwtException e) {
             return true;
         } catch (JwtException e) {
@@ -123,5 +122,10 @@ public class JwtService {
 
     public long getRefreshTokenExpirationSeconds() {
         return refreshTokenExpirationDays * 24L * 60L * 60L;
+    }
+
+    private java.util.Date toDate(Instant instant) {
+        // JJWT requires java.util.Date for standard time claims.
+        return java.util.Date.from(instant);
     }
 }
