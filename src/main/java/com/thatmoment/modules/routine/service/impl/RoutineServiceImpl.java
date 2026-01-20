@@ -3,6 +3,7 @@ package com.thatmoment.modules.routine.service.impl;
 import com.thatmoment.common.dto.MessageResponse;
 import com.thatmoment.common.exception.exceptions.BadRequestException;
 import com.thatmoment.common.exception.exceptions.NotFoundException;
+import com.thatmoment.modules.profile.domain.enums.WeekStartDay;
 import com.thatmoment.modules.profile.dto.response.UserPreferencesResponse;
 import com.thatmoment.modules.profile.service.UserPreferencesService;
 import com.thatmoment.modules.routine.constants.RoutineMessages;
@@ -267,8 +268,17 @@ class RoutineServiceImpl implements RoutineService {
     @Transactional(readOnly = true)
     public List<RoutineProgressResponse> listProgress(UUID userId, UUID routineId, LocalDate from, LocalDate to) {
         Routine routine = getRoutineEntity(userId, routineId);
-        LocalDate effectiveFrom = resolveFromDate(from, routine.getStartDate());
-        LocalDate effectiveTo = resolveToDate(to, routine.getEndDate());
+        LocalDate effectiveFrom;
+        LocalDate effectiveTo;
+        if (from == null && to == null) {
+            UserPreferencesResponse preferences = userPreferencesService.getPreferences(userId);
+            LocalDate[] weekRange = resolveWeekRange(preferences, null);
+            effectiveFrom = resolveFromDate(weekRange[0], routine.getStartDate());
+            effectiveTo = resolveToDate(weekRange[1], routine.getEndDate());
+        } else {
+            effectiveFrom = resolveFromDate(from, routine.getStartDate());
+            effectiveTo = resolveToDate(to, routine.getEndDate());
+        }
 
         return progressRepository.findByRoutineIdAndProgressDateBetweenOrderByProgressDate(
                         routineId,
@@ -284,8 +294,17 @@ class RoutineServiceImpl implements RoutineService {
     @Transactional(readOnly = true)
     public RoutineSummaryResponse getSummary(UUID userId, UUID routineId, LocalDate from, LocalDate to) {
         Routine routine = getRoutineEntity(userId, routineId);
-        LocalDate effectiveFrom = resolveFromDate(from, routine.getStartDate());
-        LocalDate effectiveTo = resolveToDate(to, routine.getEndDate());
+        LocalDate effectiveFrom;
+        LocalDate effectiveTo;
+        if (from == null && to == null) {
+            UserPreferencesResponse preferences = userPreferencesService.getPreferences(userId);
+            LocalDate[] weekRange = resolveWeekRange(preferences, null);
+            effectiveFrom = resolveFromDate(weekRange[0], routine.getStartDate());
+            effectiveTo = resolveToDate(weekRange[1], routine.getEndDate());
+        } else {
+            effectiveFrom = resolveFromDate(from, routine.getStartDate());
+            effectiveTo = resolveToDate(to, routine.getEndDate());
+        }
 
         List<RoutineDayOfWeek> scheduleDays = getDaysOfWeek(routineId);
         Set<LocalDate> targetDates = buildTargetDates(effectiveFrom, effectiveTo, scheduleDays);
@@ -454,10 +473,14 @@ class RoutineServiceImpl implements RoutineService {
     }
 
     private LocalDate resolveUserDate(UUID userId, LocalDate date) {
+        UserPreferencesResponse preferences = userPreferencesService.getPreferences(userId);
+        return resolveUserDate(preferences, date);
+    }
+
+    private LocalDate resolveUserDate(UserPreferencesResponse preferences, LocalDate date) {
         if (date != null) {
             return date;
         }
-        UserPreferencesResponse preferences = userPreferencesService.getPreferences(userId);
         String timezone = preferences.timezone();
         if (timezone == null || timezone.isBlank()) {
             return LocalDate.now();
@@ -467,6 +490,17 @@ class RoutineServiceImpl implements RoutineService {
         } catch (java.time.DateTimeException e) {
             return LocalDate.now();
         }
+    }
+
+    private LocalDate[] resolveWeekRange(UserPreferencesResponse preferences, LocalDate date) {
+        LocalDate baseDate = resolveUserDate(preferences, date);
+        WeekStartDay startDay = preferences.weekStartDay() != null
+                ? preferences.weekStartDay()
+                : WeekStartDay.MONDAY;
+        int dayValue = baseDate.getDayOfWeek().getValue();
+        int offset = startDay == WeekStartDay.SUNDAY ? dayValue % 7 : dayValue - 1;
+        LocalDate start = baseDate.minusDays(offset);
+        return new LocalDate[]{start, start.plusDays(6)};
     }
 
     private LocalDate resolveFromDate(LocalDate from, LocalDate startDate) {

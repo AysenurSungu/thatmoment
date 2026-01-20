@@ -183,8 +183,8 @@ public class RoutineController {
     public RoutineSummaryResponse getSummary(
             @AuthenticationPrincipal UserPrincipal principal,
             @PathVariable UUID id,
-            @RequestParam LocalDate from,
-            @RequestParam LocalDate to
+            @RequestParam(required = false) LocalDate from,
+            @RequestParam(required = false) LocalDate to
     ) {
         return routineService.getSummary(principal.getUserId(), id, from, to);
     }
