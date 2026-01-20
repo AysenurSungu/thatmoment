@@ -241,6 +241,8 @@ CREATE TABLE profile.user_preferences (
     notification_streaks BOOLEAN DEFAULT TRUE,
     notification_daily_reminder BOOLEAN DEFAULT TRUE,
     daily_reminder_time TIME DEFAULT '09:00:00',
+    journal_lock_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+    journal_password_hash VARCHAR(255),
 
     -- SoftDeletableEntity fields
     created_at TIMESTAMP(6) NOT NULL DEFAULT now(),
@@ -424,16 +426,14 @@ CREATE TABLE journal.media (
 CREATE TABLE routine.routines (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    local_id VARCHAR(100),
-    name VARCHAR(100) NOT NULL,
-    description TEXT,
-    category VARCHAR(50) NOT NULL, -- 'health', 'productivity', 'wellness', 'learning', 'fitness', 'custom'
-    unit VARCHAR(50) NOT NULL, -- 'times', 'minutes', 'glasses', 'pages', etc.
-    daily_target INTEGER NOT NULL DEFAULT 1,
-    icon VARCHAR(50) DEFAULT 'check',
-    color VARCHAR(7) DEFAULT '#4ade80',
+    title VARCHAR(120) NOT NULL,
+    description VARCHAR(1000),
+    type VARCHAR(20) NOT NULL, -- 'CHECK', 'NUMERIC'
+    target_value INTEGER,
+    unit VARCHAR(50),
+    start_date DATE,
+    end_date DATE,
     is_active BOOLEAN DEFAULT TRUE,
-    sort_order INTEGER DEFAULT 0,
 
     -- SoftDeletableEntity fields
     created_at TIMESTAMP(6) NOT NULL DEFAULT now(),
@@ -443,52 +443,51 @@ CREATE TABLE routine.routines (
     deleted_at TIMESTAMP,
     deleted_by UUID,
     delete_reason VARCHAR(500),
-
-    UNIQUE(user_id, local_id)
+    CONSTRAINT routine_type_check CHECK (type IN ('CHECK', 'NUMERIC')),
+    CONSTRAINT routine_dates_check CHECK (end_date IS NULL OR start_date IS NULL OR end_date >= start_date),
+    CONSTRAINT routine_target_value_check CHECK (
+        (type = 'CHECK' AND target_value IS NULL AND unit IS NULL)
+        OR (type = 'NUMERIC' AND target_value IS NOT NULL AND target_value > 0 AND unit IS NOT NULL)
+    )
 );
 
--- Routine reminders
--- Entity Type: SoftDeletableEntity
-CREATE TABLE routine.reminders (
+-- Routine schedules
+-- Entity Type: BaseEntity
+CREATE TABLE routine.routine_schedules (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     routine_id UUID NOT NULL REFERENCES routine.routines(id) ON DELETE CASCADE,
-    reminder_time TIME NOT NULL,
-    is_enabled BOOLEAN DEFAULT TRUE,
-    days_of_week INTEGER[] DEFAULT ARRAY[1,2,3,4,5,6,7], -- 1=Monday, 7=Sunday
+    day_of_week VARCHAR(10) NOT NULL,
 
-    -- SoftDeletableEntity fields
+    -- BaseEntity fields
     created_at TIMESTAMP(6) NOT NULL DEFAULT now(),
     updated_at TIMESTAMP(6) NOT NULL DEFAULT now(),
     created_by UUID,
     updated_by UUID,
-    deleted_at TIMESTAMP,
-    deleted_by UUID,
-    delete_reason VARCHAR(500)
+
+    UNIQUE (routine_id, day_of_week),
+    CONSTRAINT routine_schedule_day_check
+        CHECK (day_of_week IN ('MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'))
 );
 
--- Routine entries (daily logs)
--- Entity Type: SoftDeletableEntity
-CREATE TABLE routine.entries (
+-- Routine progress
+-- Entity Type: BaseEntity
+CREATE TABLE routine.routine_progress (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     routine_id UUID NOT NULL REFERENCES routine.routines(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    local_id VARCHAR(100),
-    entry_date DATE NOT NULL,
-    value INTEGER NOT NULL DEFAULT 0,
-    notes TEXT,
-    completed_at TIMESTAMP,
+    progress_date DATE NOT NULL,
+    amount INTEGER NOT NULL,
+    status VARCHAR(20) NOT NULL,
 
-    -- SoftDeletableEntity fields
+    -- BaseEntity fields
     created_at TIMESTAMP(6) NOT NULL DEFAULT now(),
     updated_at TIMESTAMP(6) NOT NULL DEFAULT now(),
     created_by UUID,
     updated_by UUID,
-    deleted_at TIMESTAMP,
-    deleted_by UUID,
-    delete_reason VARCHAR(500),
 
-    UNIQUE(routine_id, entry_date),
-    UNIQUE(user_id, local_id)
+    UNIQUE (routine_id, progress_date),
+    CONSTRAINT routine_progress_status_check
+        CHECK (status IN ('IN_PROGRESS', 'COMPLETED', 'SKIPPED'))
 );
 
 -- =====================================================
@@ -898,11 +897,11 @@ CREATE INDEX idx_journal_media_entry ON journal.media(entry_id) WHERE deleted_at
 CREATE INDEX idx_journal_media_user ON journal.media(user_id) WHERE deleted_at IS NULL;
 
 -- Routine indexes
-CREATE INDEX idx_routines_user ON routine.routines(user_id) WHERE deleted_at IS NULL;
-CREATE INDEX idx_routines_active ON routine.routines(user_id, is_active) WHERE deleted_at IS NULL;
-CREATE INDEX idx_routine_reminders_routine ON routine.reminders(routine_id) WHERE deleted_at IS NULL;
-CREATE INDEX idx_routine_entries_routine ON routine.entries(routine_id, entry_date DESC) WHERE deleted_at IS NULL;
-CREATE INDEX idx_routine_entries_user_date ON routine.entries(user_id, entry_date DESC) WHERE deleted_at IS NULL;
+CREATE INDEX idx_routines_user_active ON routine.routines(user_id, is_active);
+CREATE INDEX idx_routines_user_deleted ON routine.routines(user_id, deleted_at);
+CREATE INDEX idx_routine_schedules_routine ON routine.routine_schedules(routine_id);
+CREATE INDEX idx_routine_progress_user_date ON routine.routine_progress(user_id, progress_date);
+CREATE INDEX idx_routine_progress_routine_date ON routine.routine_progress(routine_id, progress_date);
 
 -- Calendar indexes
 CREATE INDEX idx_calendar_categories_user ON calendar.categories(user_id) WHERE deleted_at IS NULL;
@@ -971,8 +970,6 @@ COMMENT ON TABLE journal.entry_tags IS 'Entity: Immutable - Junction table for e
 COMMENT ON TABLE journal.media IS 'Entity: SoftDeletableEntity - Media attachments';
 
 COMMENT ON TABLE routine.routines IS 'Entity: SoftDeletableEntity - Habit definitions';
-COMMENT ON TABLE routine.reminders IS 'Entity: SoftDeletableEntity - Routine reminders';
-COMMENT ON TABLE routine.entries IS 'Entity: SoftDeletableEntity - Daily routine logs';
 
 COMMENT ON TABLE calendar.categories IS 'Entity: SoftDeletableEntity - Time block categories';
 COMMENT ON TABLE calendar.time_blocks IS 'Entity: SoftDeletableEntity - Scheduled time blocks';

@@ -65,4 +65,22 @@ public final class ApiDescriptions {
     public static final String JOURNAL_LOCK_UPDATE_SUMMARY = "Enable or disable journal lock";
     public static final String JOURNAL_LOCK_VERIFY_SUMMARY = "Verify journal lock password";
     public static final String JOURNAL_LOCK_PASSWORD_UPDATE_SUMMARY = "Change journal lock password";
+
+    public static final String TAG_ROUTINE = "Routine";
+    public static final String TAG_ROUTINE_DESC = "Routine tracking and progress";
+    public static final String ROUTINE_CREATE_SUMMARY = "Create routine";
+    public static final String ROUTINE_GET_SUMMARY = "Get routine";
+    public static final String ROUTINE_LIST_SUMMARY = "List routines";
+    public static final String ROUTINE_UPDATE_SUMMARY = "Update routine";
+    public static final String ROUTINE_DELETE_SUMMARY = "Delete routine";
+    public static final String ROUTINE_ACTIVATE_SUMMARY = "Activate routine";
+    public static final String ROUTINE_DEACTIVATE_SUMMARY = "Deactivate routine";
+    public static final String ROUTINE_TODAY_SUMMARY = "Today routines";
+    public static final String ROUTINE_ACTIVE_SUMMARY = "Active routines";
+    public static final String ROUTINE_PROGRESS_CREATE_SUMMARY = "Add routine progress";
+    public static final String ROUTINE_PROGRESS_UPDATE_SUMMARY = "Update routine progress";
+    public static final String ROUTINE_PROGRESS_LIST_SUMMARY = "List routine progress";
+    public static final String ROUTINE_PROGRESS_DELETE_SUMMARY = "Delete routine progress";
+    public static final String ROUTINE_SUMMARY_SUMMARY = "Routine summary";
+    public static final String ROUTINE_OVERVIEW_SUMMARY = "Routine overview";
 }
