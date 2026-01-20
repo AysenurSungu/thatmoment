@@ -363,7 +363,7 @@ CREATE TABLE journal.entries (
     local_id VARCHAR(100), -- Client-side ID for sync
     entry_date DATE NOT NULL,
     content TEXT,
-    mood INTEGER CHECK (mood >= 1 AND mood <= 5), -- 1-5 emoji scale
+    mood VARCHAR(20) CHECK (mood IN ('HAPPY', 'SAD', 'BORED', 'ANGRY', 'CALM')),
     gratitude TEXT[], -- Array of gratitude items
     is_favorite BOOLEAN DEFAULT FALSE,
     word_count INTEGER DEFAULT 0,

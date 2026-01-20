@@ -1,9 +1,8 @@
 package com.thatmoment.modules.journal.dto.request;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import com.thatmoment.modules.journal.domain.enums.MoodType;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -15,9 +14,7 @@ public record CreateJournalEntryRequest(
         @NotNull
         LocalDate entryDate,
         String content,
-        @Min(1)
-        @Max(5)
-        Integer mood,
+        MoodType mood,
         List<String> gratitude,
         @NotNull
         Boolean isFavorite,

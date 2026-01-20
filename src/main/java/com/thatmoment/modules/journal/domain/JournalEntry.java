@@ -1,8 +1,11 @@
 package com.thatmoment.modules.journal.domain;
 
 import com.thatmoment.common.entity.SoftDeletableEntity;
+import com.thatmoment.modules.journal.domain.enums.MoodType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -26,8 +29,9 @@ public class JournalEntry extends SoftDeletableEntity {
     @Column(name = "content")
     private String content;
 
-    @Column(name = "mood")
-    private Integer mood;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "mood", length = 20)
+    private MoodType mood;
 
     @JdbcTypeCode(SqlTypes.ARRAY)
     @Column(name = "gratitude", columnDefinition = "text[]")
@@ -73,7 +77,7 @@ public class JournalEntry extends SoftDeletableEntity {
         return content;
     }
 
-    public Integer getMood() {
+    public MoodType getMood() {
         return mood;
     }
 
@@ -93,7 +97,7 @@ public class JournalEntry extends SoftDeletableEntity {
             String localId,
             LocalDate entryDate,
             String content,
-            Integer mood,
+            MoodType mood,
             String[] gratitude,
             boolean favorite
     ) {
@@ -122,7 +126,7 @@ public class JournalEntry extends SoftDeletableEntity {
         private String localId;
         private LocalDate entryDate;
         private String content;
-        private Integer mood;
+        private MoodType mood;
         private String[] gratitude;
         private boolean favorite;
 
@@ -149,7 +153,7 @@ public class JournalEntry extends SoftDeletableEntity {
             return this;
         }
 
-        public Builder mood(Integer mood) {
+        public Builder mood(MoodType mood) {
             this.mood = mood;
             return this;
         }
