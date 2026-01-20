@@ -1,6 +1,8 @@
 package com.thatmoment.modules.plan.service.impl;
 
+import com.thatmoment.common.dto.MessageResponse;
 import com.thatmoment.common.exception.exceptions.NotFoundException;
+import com.thatmoment.modules.plan.constants.PlanMessages;
 import com.thatmoment.modules.plan.domain.Plan;
 import com.thatmoment.modules.plan.dto.request.CreatePlanRequest;
 import com.thatmoment.modules.plan.dto.request.UpdatePlanRequest;
@@ -56,12 +58,25 @@ class PlanServiceImpl implements PlanService {
     }
 
     @Transactional(readOnly = true)
-    public Page<PlanResponse> listPlans(UUID userId, LocalDate date, Pageable pageable) {
+    public Page<PlanResponse> listPlans(UUID userId, LocalDate date, Boolean completed, Pageable pageable) {
         Page<Plan> plans;
         if (date != null) {
-            plans = planRepository.findByUserIdAndPlanDateAndDeletedAtIsNull(userId, date, pageable);
+            if (completed != null) {
+                plans = planRepository.findByUserIdAndPlanDateAndIsCompletedAndDeletedAtIsNull(
+                        userId,
+                        date,
+                        completed,
+                        pageable
+                );
+            } else {
+                plans = planRepository.findByUserIdAndPlanDateAndDeletedAtIsNull(userId, date, pageable);
+            }
         } else {
-            plans = planRepository.findByUserIdAndDeletedAtIsNull(userId, pageable);
+            if (completed != null) {
+                plans = planRepository.findByUserIdAndIsCompletedAndDeletedAtIsNull(userId, completed, pageable);
+            } else {
+                plans = planRepository.findByUserIdAndDeletedAtIsNull(userId, pageable);
+            }
         }
         return plans.map(planMapper::toResponse);
     }
@@ -85,6 +100,20 @@ class PlanServiceImpl implements PlanService {
     public void deletePlan(UUID userId, UUID planId) {
         Plan plan = getPlanEntity(userId, planId);
         plan.softDelete(userId, null);
+    }
+
+    @Transactional
+    public MessageResponse completePlan(UUID userId, UUID planId) {
+        Plan plan = getPlanEntity(userId, planId);
+        plan.complete();
+        return MessageResponse.of(PlanMessages.PLAN_COMPLETED);
+    }
+
+    @Transactional
+    public MessageResponse uncompletePlan(UUID userId, UUID planId) {
+        Plan plan = getPlanEntity(userId, planId);
+        plan.uncomplete();
+        return MessageResponse.of(PlanMessages.PLAN_UNCOMPLETED);
     }
 
     private Plan getPlanEntity(UUID userId, UUID planId) {

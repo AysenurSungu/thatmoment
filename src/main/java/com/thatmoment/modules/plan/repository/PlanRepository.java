@@ -18,4 +18,13 @@ public interface PlanRepository extends JpaRepository<Plan, UUID> {
     Page<Plan> findByUserIdAndDeletedAtIsNull(UUID userId, Pageable pageable);
 
     Page<Plan> findByUserIdAndPlanDateAndDeletedAtIsNull(UUID userId, LocalDate planDate, Pageable pageable);
+
+    Page<Plan> findByUserIdAndIsCompletedAndDeletedAtIsNull(UUID userId, boolean isCompleted, Pageable pageable);
+
+    Page<Plan> findByUserIdAndPlanDateAndIsCompletedAndDeletedAtIsNull(
+            UUID userId,
+            LocalDate planDate,
+            boolean isCompleted,
+            Pageable pageable
+    );
 }
