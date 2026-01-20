@@ -85,4 +85,13 @@ public final class ApiDescriptions {
     public static final String ROUTINE_PROGRESS_DELETE_SUMMARY = "Delete routine progress";
     public static final String ROUTINE_SUMMARY_SUMMARY = "Routine summary";
     public static final String ROUTINE_OVERVIEW_SUMMARY = "Routine overview";
+
+    public static final String TAG_ANALYTICS = "Analytics";
+    public static final String TAG_ANALYTICS_DESC = "Analytics summaries and trends";
+    public static final String ANALYTICS_WEEKLY_SUMMARY = "Weekly analytics summary";
+    public static final String ANALYTICS_MONTHLY_SUMMARY = "Monthly analytics summary";
+    public static final String ANALYTICS_YEARLY_SUMMARY = "Yearly analytics summary";
+    public static final String ANALYTICS_PLAN_COMPLETION_SUMMARY = "Plan completion trend";
+    public static final String ANALYTICS_JOURNAL_MOOD_SUMMARY = "Journal mood distribution";
+    public static final String ANALYTICS_ROUTINE_COMPLETION_SUMMARY = "Routine completion trend";
 }
