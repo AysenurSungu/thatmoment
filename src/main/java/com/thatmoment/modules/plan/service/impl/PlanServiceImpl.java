@@ -17,6 +17,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -116,9 +119,39 @@ class PlanServiceImpl implements PlanService {
         return MessageResponse.of(PlanMessages.PLAN_UNCOMPLETED);
     }
 
+    @Transactional(readOnly = true)
+    public long countPlans(UUID userId, LocalDate from, LocalDate to) {
+        return planRepository.countByUserIdAndPlanDateBetweenAndDeletedAtIsNull(userId, from, to);
+    }
+
+    @Transactional(readOnly = true)
+    public long countCompletedPlans(UUID userId, LocalDate from, LocalDate to) {
+        return planRepository.countByUserIdAndPlanDateBetweenAndIsCompletedTrueAndDeletedAtIsNull(userId, from, to);
+    }
+
+    @Transactional(readOnly = true)
+    public Map<LocalDate, Long> countPlansByDate(UUID userId, LocalDate from, LocalDate to) {
+        return toDateCountMap(planRepository.countTotalsByDate(userId, from, to));
+    }
+
+    @Transactional(readOnly = true)
+    public Map<LocalDate, Long> countCompletedPlansByDate(UUID userId, LocalDate from, LocalDate to) {
+        return toDateCountMap(planRepository.countCompletedByDate(userId, from, to));
+    }
+
     private Plan getPlanEntity(UUID userId, UUID planId) {
         return planRepository.findByIdAndUserIdAndDeletedAtIsNull(planId, userId)
                 .orElseThrow(() -> new NotFoundException("Plan not found"));
+    }
+
+    private Map<LocalDate, Long> toDateCountMap(List<Object[]> results) {
+        Map<LocalDate, Long> counts = new HashMap<>();
+        for (Object[] row : results) {
+            LocalDate date = (LocalDate) row[0];
+            Number count = (Number) row[1];
+            counts.put(date, count.longValue());
+        }
+        return counts;
     }
 
     private void requireCategory(UUID userId, UUID categoryId) {

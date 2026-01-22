@@ -362,6 +362,31 @@ class RoutineServiceImpl implements RoutineService {
         return new RoutineOverviewResponse(todayRequiredCount, todayCompletedCount, activeRoutineCount);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public long countActiveRoutines(UUID userId) {
+        return routineRepository.countByUserIdAndIsActiveTrueAndDeletedAtIsNull(userId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countCompletedProgressDays(UUID userId, LocalDate from, LocalDate to) {
+        return progressRepository.countByUserIdAndProgressDateBetweenAndStatus(
+                userId,
+                from,
+                to,
+                ProgressStatus.COMPLETED
+        );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<LocalDate, Long> countCompletedProgressByDate(UUID userId, LocalDate from, LocalDate to) {
+        return toDateCountMap(
+                progressRepository.countCompletedByDate(userId, from, to, ProgressStatus.COMPLETED)
+        );
+    }
+
     private Routine getRoutineEntity(UUID userId, UUID routineId) {
         return routineRepository.findByIdAndUserIdAndDeletedAtIsNull(routineId, userId)
                 .orElseThrow(() -> new NotFoundException(RoutineMessages.ROUTINE_NOT_FOUND));
@@ -392,6 +417,16 @@ class RoutineServiceImpl implements RoutineService {
                     .add(schedule.getDayOfWeek());
         }
         return map;
+    }
+
+    private Map<LocalDate, Long> toDateCountMap(List<Object[]> results) {
+        Map<LocalDate, Long> counts = new HashMap<>();
+        for (Object[] row : results) {
+            LocalDate date = (LocalDate) row[0];
+            Number count = (Number) row[1];
+            counts.put(date, count.longValue());
+        }
+        return counts;
     }
 
     private List<RoutineDayOfWeek> normalizeDays(List<RoutineDayOfWeek> daysOfWeek) {

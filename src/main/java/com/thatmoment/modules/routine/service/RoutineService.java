@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public interface RoutineService {
@@ -52,4 +53,10 @@ public interface RoutineService {
     RoutineSummaryResponse getSummary(UUID userId, UUID routineId, LocalDate from, LocalDate to);
 
     RoutineOverviewResponse getOverview(UUID userId, LocalDate date);
+
+    long countActiveRoutines(UUID userId);
+
+    long countCompletedProgressDays(UUID userId, LocalDate from, LocalDate to);
+
+    Map<LocalDate, Long> countCompletedProgressByDate(UUID userId, LocalDate from, LocalDate to);
 }

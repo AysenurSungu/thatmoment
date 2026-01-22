@@ -4,6 +4,7 @@ import com.thatmoment.common.exception.exceptions.NotFoundException;
 import com.thatmoment.modules.journal.domain.JournalEntry;
 import com.thatmoment.modules.journal.domain.JournalEntryTag;
 import com.thatmoment.modules.journal.domain.JournalTag;
+import com.thatmoment.modules.journal.domain.enums.MoodType;
 import com.thatmoment.modules.journal.dto.request.CreateJournalEntryRequest;
 import com.thatmoment.modules.journal.dto.request.UpdateJournalEntryRequest;
 import com.thatmoment.modules.journal.dto.response.JournalEntryResponse;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumMap;
 import java.util.LinkedHashSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -141,6 +143,24 @@ class JournalEntryServiceImpl implements JournalEntryService {
         entry.softDelete(userId, null);
     }
 
+    @Transactional(readOnly = true)
+    public long countEntries(UUID userId, LocalDate from, LocalDate to) {
+        return entryRepository.countByUserIdAndEntryDateBetweenAndDeletedAtIsNull(userId, from, to);
+    }
+
+    @Transactional(readOnly = true)
+    public Map<MoodType, Long> countMoods(UUID userId, LocalDate from, LocalDate to) {
+        Map<MoodType, Long> counts = initializeMoodCounts();
+        for (Object[] row : entryRepository.countMoodsByDateRange(userId, from, to)) {
+            MoodType mood = (MoodType) row[0];
+            Number count = (Number) row[1];
+            if (mood != null) {
+                counts.put(mood, count.longValue());
+            }
+        }
+        return counts;
+    }
+
     private JournalEntry getEntryEntity(UUID userId, UUID entryId) {
         return entryRepository.findByIdAndUserIdAndDeletedAtIsNull(entryId, userId)
                 .orElseThrow(() -> new NotFoundException("Entry not found"));
@@ -235,5 +255,13 @@ class JournalEntryServiceImpl implements JournalEntryService {
             return null;
         }
         return gratitude.toArray(new String[0]);
+    }
+
+    private Map<MoodType, Long> initializeMoodCounts() {
+        Map<MoodType, Long> counts = new EnumMap<>(MoodType.class);
+        for (MoodType mood : MoodType.values()) {
+            counts.put(mood, 0L);
+        }
+        return counts;
     }
 }

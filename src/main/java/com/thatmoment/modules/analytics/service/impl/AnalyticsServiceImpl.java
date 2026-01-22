@@ -11,14 +11,12 @@ import com.thatmoment.modules.analytics.dto.response.PlanCompletionTrendResponse
 import com.thatmoment.modules.analytics.dto.response.RoutineCompletionTrendResponse;
 import com.thatmoment.modules.analytics.service.AnalyticsService;
 import com.thatmoment.modules.journal.domain.enums.MoodType;
-import com.thatmoment.modules.journal.repository.JournalEntryRepository;
-import com.thatmoment.modules.plan.repository.PlanRepository;
+import com.thatmoment.modules.journal.service.JournalEntryService;
+import com.thatmoment.modules.plan.service.PlanService;
 import com.thatmoment.modules.profile.domain.enums.WeekStartDay;
 import com.thatmoment.modules.profile.dto.response.UserPreferencesResponse;
 import com.thatmoment.modules.profile.service.UserPreferencesService;
-import com.thatmoment.modules.routine.domain.enums.ProgressStatus;
-import com.thatmoment.modules.routine.repository.RoutineProgressRepository;
-import com.thatmoment.modules.routine.repository.RoutineRepository;
+import com.thatmoment.modules.routine.service.RoutineService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,8 +26,6 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -37,23 +33,20 @@ import java.util.UUID;
 @Service
 class AnalyticsServiceImpl implements AnalyticsService {
 
-    private final PlanRepository planRepository;
-    private final JournalEntryRepository journalEntryRepository;
-    private final RoutineRepository routineRepository;
-    private final RoutineProgressRepository routineProgressRepository;
+    private final PlanService planService;
+    private final JournalEntryService journalEntryService;
+    private final RoutineService routineService;
     private final UserPreferencesService userPreferencesService;
 
     AnalyticsServiceImpl(
-            PlanRepository planRepository,
-            JournalEntryRepository journalEntryRepository,
-            RoutineRepository routineRepository,
-            RoutineProgressRepository routineProgressRepository,
+            PlanService planService,
+            JournalEntryService journalEntryService,
+            RoutineService routineService,
             UserPreferencesService userPreferencesService
     ) {
-        this.planRepository = planRepository;
-        this.journalEntryRepository = journalEntryRepository;
-        this.routineRepository = routineRepository;
-        this.routineProgressRepository = routineProgressRepository;
+        this.planService = planService;
+        this.journalEntryService = journalEntryService;
+        this.routineService = routineService;
         this.userPreferencesService = userPreferencesService;
     }
 
@@ -92,12 +85,8 @@ class AnalyticsServiceImpl implements AnalyticsService {
     @Transactional(readOnly = true)
     public List<PlanCompletionTrendResponse> getPlanCompletionTrend(UUID userId, LocalDate from, LocalDate to) {
         validateRange(from, to);
-        Map<LocalDate, Long> totalMap = toDateCountMap(
-                planRepository.countTotalsByDate(userId, from, to)
-        );
-        Map<LocalDate, Long> completedMap = toDateCountMap(
-                planRepository.countCompletedByDate(userId, from, to)
-        );
+        Map<LocalDate, Long> totalMap = planService.countPlansByDate(userId, from, to);
+        Map<LocalDate, Long> completedMap = planService.countCompletedPlansByDate(userId, from, to);
         List<PlanCompletionTrendResponse> responses = new ArrayList<>();
         for (LocalDate date : buildDateRange(from, to)) {
             responses.add(new PlanCompletionTrendResponse(
@@ -113,24 +102,14 @@ class AnalyticsServiceImpl implements AnalyticsService {
     @Transactional(readOnly = true)
     public Map<MoodType, Long> getJournalMoodDistribution(UUID userId, LocalDate from, LocalDate to) {
         validateRange(from, to);
-        Map<MoodType, Long> counts = initializeMoodCounts();
-        for (Object[] row : journalEntryRepository.countMoodsByDateRange(userId, from, to)) {
-            MoodType mood = (MoodType) row[0];
-            Number count = (Number) row[1];
-            if (mood != null) {
-                counts.put(mood, count.longValue());
-            }
-        }
-        return counts;
+        return journalEntryService.countMoods(userId, from, to);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<RoutineCompletionTrendResponse> getRoutineCompletionTrend(UUID userId, LocalDate from, LocalDate to) {
         validateRange(from, to);
-        Map<LocalDate, Long> completedMap = toDateCountMap(
-                routineProgressRepository.countCompletedByDate(userId, from, to, ProgressStatus.COMPLETED)
-        );
+        Map<LocalDate, Long> completedMap = routineService.countCompletedProgressByDate(userId, from, to);
         List<RoutineCompletionTrendResponse> responses = new ArrayList<>();
         for (LocalDate date : buildDateRange(from, to)) {
             responses.add(new RoutineCompletionTrendResponse(
@@ -147,32 +126,12 @@ class AnalyticsServiceImpl implements AnalyticsService {
             LocalDate from,
             LocalDate to
     ) {
-        long planTotal = planRepository.countByUserIdAndPlanDateBetweenAndDeletedAtIsNull(userId, from, to);
-        long planCompleted = planRepository.countByUserIdAndPlanDateBetweenAndIsCompletedTrueAndDeletedAtIsNull(
-                userId,
-                from,
-                to
-        );
-        long journalEntries = journalEntryRepository.countByUserIdAndEntryDateBetweenAndDeletedAtIsNull(
-                userId,
-                from,
-                to
-        );
-        Map<MoodType, Long> moodCounts = initializeMoodCounts();
-        for (Object[] row : journalEntryRepository.countMoodsByDateRange(userId, from, to)) {
-            MoodType mood = (MoodType) row[0];
-            Number count = (Number) row[1];
-            if (mood != null) {
-                moodCounts.put(mood, count.longValue());
-            }
-        }
-        long activeRoutines = routineRepository.countByUserIdAndIsActiveTrueAndDeletedAtIsNull(userId);
-        long completedDays = routineProgressRepository.countByUserIdAndProgressDateBetweenAndStatus(
-                userId,
-                from,
-                to,
-                ProgressStatus.COMPLETED
-        );
+        long planTotal = planService.countPlans(userId, from, to);
+        long planCompleted = planService.countCompletedPlans(userId, from, to);
+        long journalEntries = journalEntryService.countEntries(userId, from, to);
+        Map<MoodType, Long> moodCounts = journalEntryService.countMoods(userId, from, to);
+        long activeRoutines = routineService.countActiveRoutines(userId);
+        long completedDays = routineService.countCompletedProgressDays(userId, from, to);
 
         AnalyticsPeriodResponse period = new AnalyticsPeriodResponse(from, to, resolveWeekStart(preferences));
         AnalyticsPlansSummaryResponse plans = new AnalyticsPlansSummaryResponse(planTotal, planCompleted);
@@ -185,24 +144,6 @@ class AnalyticsServiceImpl implements AnalyticsService {
         if (from == null || to == null || from.isAfter(to)) {
             throw new BadRequestException(AnalyticsMessages.INVALID_DATE_RANGE);
         }
-    }
-
-    private Map<LocalDate, Long> toDateCountMap(List<Object[]> results) {
-        Map<LocalDate, Long> counts = new HashMap<>();
-        for (Object[] row : results) {
-            LocalDate date = (LocalDate) row[0];
-            Number count = (Number) row[1];
-            counts.put(date, count.longValue());
-        }
-        return counts;
-    }
-
-    private Map<MoodType, Long> initializeMoodCounts() {
-        Map<MoodType, Long> counts = new EnumMap<>(MoodType.class);
-        for (MoodType mood : MoodType.values()) {
-            counts.put(mood, 0L);
-        }
-        return counts;
     }
 
     private List<LocalDate> buildDateRange(LocalDate from, LocalDate to) {

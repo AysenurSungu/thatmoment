@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
+import java.util.Map;
 import java.util.UUID;
 
 public interface PlanService {
@@ -25,4 +26,12 @@ public interface PlanService {
     MessageResponse completePlan(UUID userId, UUID planId);
 
     MessageResponse uncompletePlan(UUID userId, UUID planId);
+
+    long countPlans(UUID userId, LocalDate from, LocalDate to);
+
+    long countCompletedPlans(UUID userId, LocalDate from, LocalDate to);
+
+    Map<LocalDate, Long> countPlansByDate(UUID userId, LocalDate from, LocalDate to);
+
+    Map<LocalDate, Long> countCompletedPlansByDate(UUID userId, LocalDate from, LocalDate to);
 }
