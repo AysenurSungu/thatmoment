@@ -5,6 +5,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.UUID;
@@ -34,6 +35,12 @@ public class Plan extends SoftDeletableEntity {
     @Column(name = "end_time", nullable = false)
     private LocalTime endTime;
 
+    @Column(name = "is_completed", nullable = false)
+    private Boolean isCompleted = false;
+
+    @Column(name = "completed_at")
+    private Instant completedAt;
+
     protected Plan() {
     }
 
@@ -45,6 +52,8 @@ public class Plan extends SoftDeletableEntity {
         this.planDate = builder.planDate;
         this.startTime = builder.startTime;
         this.endTime = builder.endTime;
+        this.isCompleted = builder.isCompleted != null ? builder.isCompleted : false;
+        this.completedAt = builder.completedAt;
     }
 
     public static Builder builder() {
@@ -79,6 +88,14 @@ public class Plan extends SoftDeletableEntity {
         return endTime;
     }
 
+    public Boolean getIsCompleted() {
+        return isCompleted;
+    }
+
+    public Instant getCompletedAt() {
+        return completedAt;
+    }
+
     public void updateDetails(
             String title,
             String description,
@@ -95,6 +112,16 @@ public class Plan extends SoftDeletableEntity {
         this.categoryId = categoryId;
     }
 
+    public void complete() {
+        this.isCompleted = true;
+        this.completedAt = Instant.now();
+    }
+
+    public void uncomplete() {
+        this.isCompleted = false;
+        this.completedAt = null;
+    }
+
     public static final class Builder {
         private UUID userId;
         private UUID categoryId;
@@ -103,6 +130,8 @@ public class Plan extends SoftDeletableEntity {
         private LocalDate planDate;
         private LocalTime startTime;
         private LocalTime endTime;
+        private Boolean isCompleted;
+        private Instant completedAt;
         private Builder() {
         }
 
@@ -138,6 +167,16 @@ public class Plan extends SoftDeletableEntity {
 
         public Builder endTime(LocalTime endTime) {
             this.endTime = endTime;
+            return this;
+        }
+
+        public Builder isCompleted(Boolean isCompleted) {
+            this.isCompleted = isCompleted;
+            return this;
+        }
+
+        public Builder completedAt(Instant completedAt) {
+            this.completedAt = completedAt;
             return this;
         }
 

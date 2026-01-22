@@ -39,6 +39,8 @@ public interface RoutineRepository extends JpaRepository<Routine, UUID> {
 
     List<Routine> findByUserIdAndIsActiveTrueAndDeletedAtIsNull(UUID userId);
 
+    long countByUserIdAndIsActiveTrueAndDeletedAtIsNull(UUID userId);
+
     @Query("""
         select r from Routine r
         where r.userId = :userId

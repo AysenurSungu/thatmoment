@@ -1,5 +1,6 @@
 package com.thatmoment.modules.journal.service;
 
+import com.thatmoment.modules.journal.domain.enums.MoodType;
 import com.thatmoment.modules.journal.dto.request.CreateJournalEntryRequest;
 import com.thatmoment.modules.journal.dto.request.UpdateJournalEntryRequest;
 import com.thatmoment.modules.journal.dto.response.JournalEntryResponse;
@@ -7,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
+import java.util.Map;
 import java.util.UUID;
 
 public interface JournalEntryService {
@@ -20,4 +22,8 @@ public interface JournalEntryService {
     JournalEntryResponse updateEntry(UUID userId, UUID entryId, UpdateJournalEntryRequest request);
 
     void deleteEntry(UUID userId, UUID entryId);
+
+    long countEntries(UUID userId, LocalDate from, LocalDate to);
+
+    Map<MoodType, Long> countMoods(UUID userId, LocalDate from, LocalDate to);
 }

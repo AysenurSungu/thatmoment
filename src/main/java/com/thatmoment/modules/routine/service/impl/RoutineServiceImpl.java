@@ -3,21 +3,26 @@ package com.thatmoment.modules.routine.service.impl;
 import com.thatmoment.common.dto.MessageResponse;
 import com.thatmoment.common.exception.exceptions.BadRequestException;
 import com.thatmoment.common.exception.exceptions.NotFoundException;
+import com.thatmoment.modules.profile.domain.enums.WeekStartDay;
 import com.thatmoment.modules.profile.dto.response.UserPreferencesResponse;
 import com.thatmoment.modules.profile.service.UserPreferencesService;
 import com.thatmoment.modules.routine.constants.RoutineMessages;
 import com.thatmoment.modules.routine.domain.Routine;
 import com.thatmoment.modules.routine.domain.RoutineProgress;
+import com.thatmoment.modules.routine.domain.RoutineReminder;
 import com.thatmoment.modules.routine.domain.RoutineSchedule;
 import com.thatmoment.modules.routine.domain.enums.ProgressStatus;
 import com.thatmoment.modules.routine.domain.enums.RoutineDayOfWeek;
 import com.thatmoment.modules.routine.domain.enums.RoutineType;
 import com.thatmoment.modules.routine.dto.request.CreateRoutineProgressRequest;
 import com.thatmoment.modules.routine.dto.request.CreateRoutineRequest;
+import com.thatmoment.modules.routine.dto.request.SkipRoutineRequest;
 import com.thatmoment.modules.routine.dto.request.UpdateRoutineProgressRequest;
 import com.thatmoment.modules.routine.dto.request.UpdateRoutineRequest;
+import com.thatmoment.modules.routine.dto.request.UpdateRoutineRemindersRequest;
 import com.thatmoment.modules.routine.dto.response.RoutineOverviewResponse;
 import com.thatmoment.modules.routine.dto.response.RoutineProgressResponse;
+import com.thatmoment.modules.routine.dto.response.RoutineRemindersResponse;
 import com.thatmoment.modules.routine.dto.response.RoutineResponse;
 import com.thatmoment.modules.routine.dto.response.RoutineScheduleResponse;
 import com.thatmoment.modules.routine.dto.response.RoutineSummaryResponse;
@@ -25,6 +30,7 @@ import com.thatmoment.modules.routine.mapper.RoutineMapper;
 import com.thatmoment.modules.routine.mapper.RoutineProgressMapper;
 import com.thatmoment.modules.routine.repository.RoutineProgressRepository;
 import com.thatmoment.modules.routine.repository.RoutineRepository;
+import com.thatmoment.modules.routine.repository.RoutineReminderRepository;
 import com.thatmoment.modules.routine.repository.RoutineScheduleRepository;
 import com.thatmoment.modules.routine.service.RoutineService;
 import org.springframework.data.domain.Page;
@@ -33,6 +39,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -50,6 +57,7 @@ class RoutineServiceImpl implements RoutineService {
     private final RoutineRepository routineRepository;
     private final RoutineScheduleRepository scheduleRepository;
     private final RoutineProgressRepository progressRepository;
+    private final RoutineReminderRepository reminderRepository;
     private final RoutineMapper routineMapper;
     private final RoutineProgressMapper progressMapper;
     private final UserPreferencesService userPreferencesService;
@@ -58,6 +66,7 @@ class RoutineServiceImpl implements RoutineService {
             RoutineRepository routineRepository,
             RoutineScheduleRepository scheduleRepository,
             RoutineProgressRepository progressRepository,
+            RoutineReminderRepository reminderRepository,
             RoutineMapper routineMapper,
             RoutineProgressMapper progressMapper,
             UserPreferencesService userPreferencesService
@@ -65,6 +74,7 @@ class RoutineServiceImpl implements RoutineService {
         this.routineRepository = routineRepository;
         this.scheduleRepository = scheduleRepository;
         this.progressRepository = progressRepository;
+        this.reminderRepository = reminderRepository;
         this.routineMapper = routineMapper;
         this.progressMapper = progressMapper;
         this.userPreferencesService = userPreferencesService;
@@ -251,6 +261,29 @@ class RoutineServiceImpl implements RoutineService {
 
     @Override
     @Transactional
+    public RoutineProgressResponse skipRoutine(UUID userId, UUID routineId, SkipRoutineRequest request) {
+        Routine routine = getRoutineEntity(userId, routineId);
+        assertRoutineActive(routine);
+        LocalDate date = request.date();
+        validateProgressDate(routine, date);
+        validateSchedule(routineId, date);
+
+        RoutineProgress progress = progressRepository.findByRoutineIdAndProgressDate(routineId, date)
+                .orElseGet(() -> RoutineProgress.builder()
+                        .routineId(routineId)
+                        .userId(userId)
+                        .progressDate(date)
+                        .amount(0)
+                        .status(ProgressStatus.SKIPPED)
+                        .build());
+
+        progress.updateProgress(0, ProgressStatus.SKIPPED);
+        RoutineProgress saved = progressRepository.save(progress);
+        return progressMapper.toResponse(saved);
+    }
+
+    @Override
+    @Transactional
     public void deleteProgress(UUID userId, UUID routineId, LocalDate date) {
         Routine routine = getRoutineEntity(userId, routineId);
         RoutineProgress progress = progressRepository.findByRoutineIdAndProgressDate(routineId, date)
@@ -267,8 +300,17 @@ class RoutineServiceImpl implements RoutineService {
     @Transactional(readOnly = true)
     public List<RoutineProgressResponse> listProgress(UUID userId, UUID routineId, LocalDate from, LocalDate to) {
         Routine routine = getRoutineEntity(userId, routineId);
-        LocalDate effectiveFrom = resolveFromDate(from, routine.getStartDate());
-        LocalDate effectiveTo = resolveToDate(to, routine.getEndDate());
+        LocalDate effectiveFrom;
+        LocalDate effectiveTo;
+        if (from == null && to == null) {
+            UserPreferencesResponse preferences = userPreferencesService.getPreferences(userId);
+            LocalDate[] weekRange = resolveWeekRange(preferences, null);
+            effectiveFrom = resolveFromDate(weekRange[0], routine.getStartDate());
+            effectiveTo = resolveToDate(weekRange[1], routine.getEndDate());
+        } else {
+            effectiveFrom = resolveFromDate(from, routine.getStartDate());
+            effectiveTo = resolveToDate(to, routine.getEndDate());
+        }
 
         return progressRepository.findByRoutineIdAndProgressDateBetweenOrderByProgressDate(
                         routineId,
@@ -284,8 +326,17 @@ class RoutineServiceImpl implements RoutineService {
     @Transactional(readOnly = true)
     public RoutineSummaryResponse getSummary(UUID userId, UUID routineId, LocalDate from, LocalDate to) {
         Routine routine = getRoutineEntity(userId, routineId);
-        LocalDate effectiveFrom = resolveFromDate(from, routine.getStartDate());
-        LocalDate effectiveTo = resolveToDate(to, routine.getEndDate());
+        LocalDate effectiveFrom;
+        LocalDate effectiveTo;
+        if (from == null && to == null) {
+            UserPreferencesResponse preferences = userPreferencesService.getPreferences(userId);
+            LocalDate[] weekRange = resolveWeekRange(preferences, null);
+            effectiveFrom = resolveFromDate(weekRange[0], routine.getStartDate());
+            effectiveTo = resolveToDate(weekRange[1], routine.getEndDate());
+        } else {
+            effectiveFrom = resolveFromDate(from, routine.getStartDate());
+            effectiveTo = resolveToDate(to, routine.getEndDate());
+        }
 
         List<RoutineDayOfWeek> scheduleDays = getDaysOfWeek(routineId);
         Set<LocalDate> targetDates = buildTargetDates(effectiveFrom, effectiveTo, scheduleDays);
@@ -343,6 +394,60 @@ class RoutineServiceImpl implements RoutineService {
         return new RoutineOverviewResponse(todayRequiredCount, todayCompletedCount, activeRoutineCount);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public RoutineRemindersResponse getReminders(UUID userId, UUID routineId) {
+        Routine routine = getRoutineEntity(userId, routineId);
+        List<LocalTime> times = reminderRepository.findByRoutineIdOrderByReminderTime(routine.getId()).stream()
+                .map(RoutineReminder::getReminderTime)
+                .toList();
+        return new RoutineRemindersResponse(routine.getId(), times);
+    }
+
+    @Override
+    @Transactional
+    public RoutineRemindersResponse updateReminders(
+            UUID userId,
+            UUID routineId,
+            UpdateRoutineRemindersRequest request
+    ) {
+        Routine routine = getRoutineEntity(userId, routineId);
+        List<LocalTime> times = normalizeReminderTimes(request.times());
+        reminderRepository.deleteByRoutineId(routine.getId());
+        if (!times.isEmpty()) {
+            List<RoutineReminder> reminders = times.stream()
+                    .map(time -> new RoutineReminder(routine.getId(), time))
+                    .toList();
+            reminderRepository.saveAll(reminders);
+        }
+        return new RoutineRemindersResponse(routine.getId(), times);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countActiveRoutines(UUID userId) {
+        return routineRepository.countByUserIdAndIsActiveTrueAndDeletedAtIsNull(userId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countCompletedProgressDays(UUID userId, LocalDate from, LocalDate to) {
+        return progressRepository.countByUserIdAndProgressDateBetweenAndStatus(
+                userId,
+                from,
+                to,
+                ProgressStatus.COMPLETED
+        );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<LocalDate, Long> countCompletedProgressByDate(UUID userId, LocalDate from, LocalDate to) {
+        return toDateCountMap(
+                progressRepository.countCompletedByDate(userId, from, to, ProgressStatus.COMPLETED)
+        );
+    }
+
     private Routine getRoutineEntity(UUID userId, UUID routineId) {
         return routineRepository.findByIdAndUserIdAndDeletedAtIsNull(routineId, userId)
                 .orElseThrow(() -> new NotFoundException(RoutineMessages.ROUTINE_NOT_FOUND));
@@ -373,6 +478,26 @@ class RoutineServiceImpl implements RoutineService {
                     .add(schedule.getDayOfWeek());
         }
         return map;
+    }
+
+    private List<LocalTime> normalizeReminderTimes(List<LocalTime> times) {
+        if (times == null || times.isEmpty()) {
+            return List.of();
+        }
+        Set<LocalTime> unique = new HashSet<>(times);
+        List<LocalTime> normalized = new ArrayList<>(unique);
+        normalized.sort(LocalTime::compareTo);
+        return normalized;
+    }
+
+    private Map<LocalDate, Long> toDateCountMap(List<Object[]> results) {
+        Map<LocalDate, Long> counts = new HashMap<>();
+        for (Object[] row : results) {
+            LocalDate date = (LocalDate) row[0];
+            Number count = (Number) row[1];
+            counts.put(date, count.longValue());
+        }
+        return counts;
     }
 
     private List<RoutineDayOfWeek> normalizeDays(List<RoutineDayOfWeek> daysOfWeek) {
@@ -454,10 +579,14 @@ class RoutineServiceImpl implements RoutineService {
     }
 
     private LocalDate resolveUserDate(UUID userId, LocalDate date) {
+        UserPreferencesResponse preferences = userPreferencesService.getPreferences(userId);
+        return resolveUserDate(preferences, date);
+    }
+
+    private LocalDate resolveUserDate(UserPreferencesResponse preferences, LocalDate date) {
         if (date != null) {
             return date;
         }
-        UserPreferencesResponse preferences = userPreferencesService.getPreferences(userId);
         String timezone = preferences.timezone();
         if (timezone == null || timezone.isBlank()) {
             return LocalDate.now();
@@ -467,6 +596,17 @@ class RoutineServiceImpl implements RoutineService {
         } catch (java.time.DateTimeException e) {
             return LocalDate.now();
         }
+    }
+
+    private LocalDate[] resolveWeekRange(UserPreferencesResponse preferences, LocalDate date) {
+        LocalDate baseDate = resolveUserDate(preferences, date);
+        WeekStartDay startDay = preferences.weekStartDay() != null
+                ? preferences.weekStartDay()
+                : WeekStartDay.MONDAY;
+        int dayValue = baseDate.getDayOfWeek().getValue();
+        int offset = startDay == WeekStartDay.SUNDAY ? dayValue % 7 : dayValue - 1;
+        LocalDate start = baseDate.minusDays(offset);
+        return new LocalDate[]{start, start.plusDays(6)};
     }
 
     private LocalDate resolveFromDate(LocalDate from, LocalDate startDate) {

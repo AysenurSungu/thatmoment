@@ -6,6 +6,7 @@ import com.thatmoment.modules.plan.dto.request.CreatePlanRequest;
 import com.thatmoment.modules.plan.dto.request.UpdatePlanRequest;
 import com.thatmoment.modules.plan.dto.response.PlanResponse;
 import com.thatmoment.modules.plan.service.PlanService;
+import com.thatmoment.common.dto.MessageResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -71,9 +72,10 @@ public class PlanController {
                     @SortDefault(sort = "planDate", direction = Sort.Direction.ASC),
                     @SortDefault(sort = "startTime", direction = Sort.Direction.ASC)
             }) Pageable pageable,
-            @RequestParam(required = false) LocalDate date
+            @RequestParam(required = false) LocalDate date,
+            @RequestParam(required = false) Boolean completed
     ) {
-        return planService.listPlans(principal.getUserId(), date, pageable);
+        return planService.listPlans(principal.getUserId(), date, completed, pageable);
     }
 
     @PutMapping("/{id}")
@@ -94,5 +96,23 @@ public class PlanController {
             @PathVariable UUID id
     ) {
         planService.deletePlan(principal.getUserId(), id);
+    }
+
+    @PostMapping("/{id}/complete")
+    @Operation(summary = ApiDescriptions.PLAN_COMPLETE_SUMMARY)
+    public MessageResponse completePlan(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @PathVariable UUID id
+    ) {
+        return planService.completePlan(principal.getUserId(), id);
+    }
+
+    @PostMapping("/{id}/uncomplete")
+    @Operation(summary = ApiDescriptions.PLAN_UNCOMPLETE_SUMMARY)
+    public MessageResponse uncompletePlan(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @PathVariable UUID id
+    ) {
+        return planService.uncompletePlan(principal.getUserId(), id);
     }
 }

@@ -11,4 +11,5 @@ public final class ProfileMessages {
     public static final String JOURNAL_PASSWORD_INVALID = "Journal password is invalid";
     public static final String JOURNAL_UNLOCK_SUCCESS = "Journal unlocked";
     public static final String JOURNAL_PASSWORD_UPDATED = "Journal password updated";
+    public static final String PLAN_REMINDER_MINUTES_INVALID = "Plan reminder minutes invalid";
 }

@@ -18,4 +18,8 @@ public final class ProfileDefaults {
     public static final TimeFormat TIME_FORMAT = TimeFormat.H24;
     public static final LocalTime DAILY_REMINDER_TIME = LocalTime.of(9, 0);
     public static final Boolean JOURNAL_LOCK_ENABLED = Boolean.FALSE;
+    public static final Boolean PLAN_NOTIFICATIONS_ENABLED = Boolean.TRUE;
+    public static final Integer PLAN_REMINDER_MINUTES = 15;
+    public static final Boolean ROUTINE_NOTIFICATIONS_ENABLED = Boolean.TRUE;
+    public static final Boolean JOURNAL_NOTIFICATIONS_ENABLED = Boolean.TRUE;
 }

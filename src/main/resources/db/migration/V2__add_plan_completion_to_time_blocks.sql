@@ -1,0 +1,3 @@
+ALTER TABLE calendar.time_blocks
+    ADD COLUMN IF NOT EXISTS is_completed BOOLEAN NOT NULL DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS completed_at TIMESTAMP;

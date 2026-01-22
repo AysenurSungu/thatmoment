@@ -1,5 +1,6 @@
 package com.thatmoment.modules.plan.dto.response;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.UUID;
@@ -11,6 +12,8 @@ public record PlanResponse(
         LocalDate planDate,
         LocalTime startTime,
         LocalTime endTime,
-        UUID categoryId
+        UUID categoryId,
+        Boolean isCompleted,
+        Instant completedAt
 ) {
 }

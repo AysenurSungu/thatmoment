@@ -5,7 +5,9 @@ import com.thatmoment.common.exception.exceptions.NotFoundException;
 import com.thatmoment.common.exception.exceptions.UnauthorizedException;
 import com.thatmoment.modules.profile.constants.ProfileDefaults;
 import com.thatmoment.modules.profile.domain.UserPreferences;
+import com.thatmoment.modules.profile.dto.request.UpdateNotificationPreferencesRequest;
 import com.thatmoment.modules.profile.dto.request.UpdateUserPreferencesRequest;
+import com.thatmoment.modules.profile.dto.response.NotificationPreferencesResponse;
 import com.thatmoment.modules.profile.dto.response.UserPreferencesResponse;
 import com.thatmoment.modules.profile.mapper.UserPreferencesMapper;
 import com.thatmoment.modules.profile.repository.UserPreferencesRepository;
@@ -62,6 +64,32 @@ class UserPreferencesServiceImpl implements UserPreferencesService {
         );
 
         return preferencesMapper.toResponse(preferences);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public NotificationPreferencesResponse getNotificationPreferences(UUID userId) {
+        UserPreferences preferences = preferencesRepository.findByUserIdAndDeletedAtIsNull(userId)
+                .orElseGet(() -> preferencesRepository.save(defaultPreferences(userId)));
+        return preferencesMapper.toNotificationResponse(preferences);
+    }
+
+    @Override
+    @Transactional
+    public NotificationPreferencesResponse updateNotificationPreferences(
+            UUID userId,
+            UpdateNotificationPreferencesRequest request
+    ) {
+        validatePlanReminderMinutes(request.planReminderMinutes());
+        UserPreferences preferences = preferencesRepository.findByUserIdAndDeletedAtIsNull(userId)
+                .orElseGet(() -> preferencesRepository.save(defaultPreferences(userId)));
+        preferences.updateNotificationPreferences(
+                request.planNotificationsEnabled(),
+                request.planReminderMinutes(),
+                request.routineNotificationsEnabled(),
+                request.journalNotificationsEnabled()
+        );
+        return preferencesMapper.toNotificationResponse(preferences);
     }
 
     @Override
@@ -135,7 +163,17 @@ class UserPreferencesServiceImpl implements UserPreferencesService {
                 .notificationStreaks(Boolean.TRUE)
                 .notificationDailyReminder(Boolean.TRUE)
                 .dailyReminderTime(ProfileDefaults.DAILY_REMINDER_TIME)
+                .planNotificationsEnabled(ProfileDefaults.PLAN_NOTIFICATIONS_ENABLED)
+                .planReminderMinutes(ProfileDefaults.PLAN_REMINDER_MINUTES)
+                .routineNotificationsEnabled(ProfileDefaults.ROUTINE_NOTIFICATIONS_ENABLED)
+                .journalNotificationsEnabled(ProfileDefaults.JOURNAL_NOTIFICATIONS_ENABLED)
                 .journalLockEnabled(ProfileDefaults.JOURNAL_LOCK_ENABLED)
                 .build();
+    }
+
+    private void validatePlanReminderMinutes(Integer minutes) {
+        if (minutes == null || !(minutes == 15 || minutes == 30 || minutes == 60)) {
+            throw new BadRequestException(ProfileMessages.PLAN_REMINDER_MINUTES_INVALID);
+        }
     }
 }
