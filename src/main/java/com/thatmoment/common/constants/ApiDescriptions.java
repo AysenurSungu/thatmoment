@@ -85,6 +85,9 @@ public final class ApiDescriptions {
     public static final String ROUTINE_PROGRESS_DELETE_SUMMARY = "Delete routine progress";
     public static final String ROUTINE_SUMMARY_SUMMARY = "Routine summary";
     public static final String ROUTINE_OVERVIEW_SUMMARY = "Routine overview";
+    public static final String ROUTINE_REMINDERS_GET_SUMMARY = "Get routine reminders";
+    public static final String ROUTINE_REMINDERS_UPDATE_SUMMARY = "Update routine reminders";
+    public static final String ROUTINE_SKIP_SUMMARY = "Skip routine";
 
     public static final String TAG_ANALYTICS = "Analytics";
     public static final String TAG_ANALYTICS_DESC = "Analytics summaries and trends";
@@ -94,4 +97,12 @@ public final class ApiDescriptions {
     public static final String ANALYTICS_PLAN_COMPLETION_SUMMARY = "Plan completion trend";
     public static final String ANALYTICS_JOURNAL_MOOD_SUMMARY = "Journal mood distribution";
     public static final String ANALYTICS_ROUTINE_COMPLETION_SUMMARY = "Routine completion trend";
+
+    public static final String TAG_NOTIFICATION = "Notification";
+    public static final String TAG_NOTIFICATION_DESC = "Notification inbox and preferences";
+    public static final String NOTIFICATION_LIST_SUMMARY = "List notifications";
+    public static final String NOTIFICATION_READ_SUMMARY = "Mark notification read";
+    public static final String NOTIFICATION_READ_ALL_SUMMARY = "Mark all notifications read";
+    public static final String NOTIFICATION_PREFERENCES_GET_SUMMARY = "Get notification preferences";
+    public static final String NOTIFICATION_PREFERENCES_UPDATE_SUMMARY = "Update notification preferences";
 }

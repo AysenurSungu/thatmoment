@@ -5,10 +5,13 @@ import com.thatmoment.common.dto.MessageResponse;
 import com.thatmoment.modules.auth.security.UserPrincipal;
 import com.thatmoment.modules.routine.dto.request.CreateRoutineProgressRequest;
 import com.thatmoment.modules.routine.dto.request.CreateRoutineRequest;
+import com.thatmoment.modules.routine.dto.request.SkipRoutineRequest;
 import com.thatmoment.modules.routine.dto.request.UpdateRoutineProgressRequest;
 import com.thatmoment.modules.routine.dto.request.UpdateRoutineRequest;
+import com.thatmoment.modules.routine.dto.request.UpdateRoutineRemindersRequest;
 import com.thatmoment.modules.routine.dto.response.RoutineOverviewResponse;
 import com.thatmoment.modules.routine.dto.response.RoutineProgressResponse;
+import com.thatmoment.modules.routine.dto.response.RoutineRemindersResponse;
 import com.thatmoment.modules.routine.dto.response.RoutineResponse;
 import com.thatmoment.modules.routine.dto.response.RoutineSummaryResponse;
 import com.thatmoment.modules.routine.service.RoutineService;
@@ -167,6 +170,16 @@ public class RoutineController {
         return routineService.listProgress(principal.getUserId(), id, from, to);
     }
 
+    @PostMapping("/{id}/skip")
+    @Operation(summary = ApiDescriptions.ROUTINE_SKIP_SUMMARY)
+    public RoutineProgressResponse skipRoutine(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @PathVariable UUID id,
+            @Valid @RequestBody SkipRoutineRequest request
+    ) {
+        return routineService.skipRoutine(principal.getUserId(), id, request);
+    }
+
     @DeleteMapping("/{id}/progress/{date}")
     @Operation(summary = ApiDescriptions.ROUTINE_PROGRESS_DELETE_SUMMARY)
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -187,6 +200,25 @@ public class RoutineController {
             @RequestParam(required = false) LocalDate to
     ) {
         return routineService.getSummary(principal.getUserId(), id, from, to);
+    }
+
+    @GetMapping("/{id}/reminders")
+    @Operation(summary = ApiDescriptions.ROUTINE_REMINDERS_GET_SUMMARY)
+    public RoutineRemindersResponse getReminders(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @PathVariable UUID id
+    ) {
+        return routineService.getReminders(principal.getUserId(), id);
+    }
+
+    @PutMapping("/{id}/reminders")
+    @Operation(summary = ApiDescriptions.ROUTINE_REMINDERS_UPDATE_SUMMARY)
+    public RoutineRemindersResponse updateReminders(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateRoutineRemindersRequest request
+    ) {
+        return routineService.updateReminders(principal.getUserId(), id, request);
     }
 
     @GetMapping("/overview")

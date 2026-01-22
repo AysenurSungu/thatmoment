@@ -49,6 +49,18 @@ public class UserPreferences extends SoftDeletableEntity {
     @Column(name = "daily_reminder_time")
     private LocalTime dailyReminderTime;
 
+    @Column(name = "plan_notifications_enabled")
+    private Boolean planNotificationsEnabled;
+
+    @Column(name = "plan_reminder_minutes")
+    private Integer planReminderMinutes;
+
+    @Column(name = "routine_notifications_enabled")
+    private Boolean routineNotificationsEnabled;
+
+    @Column(name = "journal_notifications_enabled")
+    private Boolean journalNotificationsEnabled;
+
     @Column(name = "journal_lock_enabled", nullable = false)
     private Boolean journalLockEnabled;
 
@@ -70,6 +82,10 @@ public class UserPreferences extends SoftDeletableEntity {
         this.notificationStreaks = builder.notificationStreaks;
         this.notificationDailyReminder = builder.notificationDailyReminder;
         this.dailyReminderTime = builder.dailyReminderTime;
+        this.planNotificationsEnabled = builder.planNotificationsEnabled;
+        this.planReminderMinutes = builder.planReminderMinutes;
+        this.routineNotificationsEnabled = builder.routineNotificationsEnabled;
+        this.journalNotificationsEnabled = builder.journalNotificationsEnabled;
         this.journalLockEnabled = builder.journalLockEnabled;
         this.journalPasswordHash = builder.journalPasswordHash;
     }
@@ -122,6 +138,22 @@ public class UserPreferences extends SoftDeletableEntity {
         return dailyReminderTime;
     }
 
+    public Boolean getPlanNotificationsEnabled() {
+        return planNotificationsEnabled;
+    }
+
+    public Integer getPlanReminderMinutes() {
+        return planReminderMinutes;
+    }
+
+    public Boolean getRoutineNotificationsEnabled() {
+        return routineNotificationsEnabled;
+    }
+
+    public Boolean getJournalNotificationsEnabled() {
+        return journalNotificationsEnabled;
+    }
+
     public Boolean getJournalLockEnabled() {
         return journalLockEnabled;
     }
@@ -154,6 +186,18 @@ public class UserPreferences extends SoftDeletableEntity {
         this.dailyReminderTime = dailyReminderTime;
     }
 
+    public void updateNotificationPreferences(
+            Boolean planNotificationsEnabled,
+            Integer planReminderMinutes,
+            Boolean routineNotificationsEnabled,
+            Boolean journalNotificationsEnabled
+    ) {
+        this.planNotificationsEnabled = planNotificationsEnabled;
+        this.planReminderMinutes = planReminderMinutes;
+        this.routineNotificationsEnabled = routineNotificationsEnabled;
+        this.journalNotificationsEnabled = journalNotificationsEnabled;
+    }
+
     public void setJournalLock(String passwordHash) {
         this.journalLockEnabled = Boolean.TRUE;
         this.journalPasswordHash = passwordHash;
@@ -176,6 +220,10 @@ public class UserPreferences extends SoftDeletableEntity {
         private Boolean notificationStreaks;
         private Boolean notificationDailyReminder;
         private LocalTime dailyReminderTime;
+        private Boolean planNotificationsEnabled;
+        private Integer planReminderMinutes;
+        private Boolean routineNotificationsEnabled;
+        private Boolean journalNotificationsEnabled;
         private Boolean journalLockEnabled;
         private String journalPasswordHash;
 
@@ -234,6 +282,26 @@ public class UserPreferences extends SoftDeletableEntity {
 
         public Builder dailyReminderTime(LocalTime dailyReminderTime) {
             this.dailyReminderTime = dailyReminderTime;
+            return this;
+        }
+
+        public Builder planNotificationsEnabled(Boolean planNotificationsEnabled) {
+            this.planNotificationsEnabled = planNotificationsEnabled;
+            return this;
+        }
+
+        public Builder planReminderMinutes(Integer planReminderMinutes) {
+            this.planReminderMinutes = planReminderMinutes;
+            return this;
+        }
+
+        public Builder routineNotificationsEnabled(Boolean routineNotificationsEnabled) {
+            this.routineNotificationsEnabled = routineNotificationsEnabled;
+            return this;
+        }
+
+        public Builder journalNotificationsEnabled(Boolean journalNotificationsEnabled) {
+            this.journalNotificationsEnabled = journalNotificationsEnabled;
             return this;
         }
 
